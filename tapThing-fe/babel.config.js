@@ -16,6 +16,7 @@ module.exports = function (api) {
             '@hooks': './src/hooks',
             '@providers': './src/providers',
             '@locales': './src/locales',
+            '@context': './src/context',
             // aggiungi qui eventuali altri alias
           },
         },

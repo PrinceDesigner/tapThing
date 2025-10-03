@@ -1,21 +1,22 @@
 // src/screens/AuthStackScreen/LandingScreen.tsx
-import React, { use } from 'react';
+import React from 'react';
 import { StyleSheet, View, StatusBar } from 'react-native';
-import { Button, useTheme } from 'react-native-paper';
+import { Button, IconButton, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextBold, TextRegular } from '@/components/ui/customText';
 import { useTranslation } from 'react-i18next';
 import { setAppLanguage } from '@/i18n';
 import { useNavigation } from '@react-navigation/native';
+import { useThemeContext } from '@/context/themeContext';
 
 type Props = { onGetStarted?: () => void };
 
 const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
   const theme = useTheme();
   const isDark = theme.dark;
+  const { toggleTheme, theme: currentTheme } = useThemeContext();
 
   const navigate = useNavigation<any>();
-
   const { t } = useTranslation();
 
   return (
@@ -27,6 +28,16 @@ const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
       />
 
       <View style={styles.container}>
+        {/* Header con toggle */}
+        <View style={styles.header}>
+          <IconButton
+            icon={currentTheme === 'light' ? 'moon-waning-crescent' : 'white-balance-sunny'}
+            size={24}
+            onPress={toggleTheme}
+            iconColor={theme.colors.onBackground}
+          />
+        </View>
+
         {/* Contenuto centrale */}
         <View style={styles.centerContent}>
           <TextBold style={[styles.title, { color: theme.colors.onBackground }]}>
@@ -65,6 +76,7 @@ const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
           >
             Italiano
           </Button>
+
         </View>
       </View>
     </SafeAreaView>
@@ -81,6 +93,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
   },
+  header: {
+    alignItems: 'flex-end',
+    // position: 'absolute'
+  },
   centerContent: {
     flex: 1,
     alignItems: 'center',
@@ -93,6 +109,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: 8,
   },
 });

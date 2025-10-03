@@ -1,24 +1,23 @@
+// App.tsx
 import 'react-native-reanimated';
 import { useFonts } from 'expo-font';
-import { useColorScheme } from 'react-native';
 import {
   Provider as PaperProvider,
   configureFonts,
-  adaptNavigationTheme
+  adaptNavigationTheme,
 } from 'react-native-paper';
 import { DefaultTheme as NavLight, DarkTheme as NavDark, NavigationContainer } from '@react-navigation/native';
 
 import { MonoLightTheme } from '@/theme/lightTheme';
-import TapThingLandingScreen from '@/screens/AuthStackScreen/LandingScreen';
 import { MonoDarkTheme } from '@/theme/darkTheme';
 import AuthStackNavigation from '@/navigation/AuthStackNavigation/AuthStackNavigation';
 import { useEffect, useState } from 'react';
 import { initI18n } from './i18n';
+import { useThemeContext, ThemeProvider } from './context/themeContext';
 
-export function App() {
-  const colorScheme = useColorScheme();
+function AppContent() {
   const [i18nReady, setI18nReady] = useState(false);
-
+  const { theme } = useThemeContext(); // <-- ora è DENTRO al provider (vedi sotto)
 
   const [loaded] = useFonts({
     'RobotoCondensed-Light': require('./assets/fonts/Roboto_Condensed-Light.ttf'),
@@ -31,10 +30,8 @@ export function App() {
     initI18n().then(() => setI18nReady(true));
   }, []);
 
-
   if (!loaded || !i18nReady) return null;
 
-  // Helper per MD3 fonts
   const M = (family: string, weight: '300' | '400' | '500' | '700', size: number, line: number, letter = 0) => ({
     fontFamily: family,
     fontWeight: weight,
@@ -61,22 +58,17 @@ export function App() {
     bodySmall: M('RobotoCondensed-Regular', '400', 12, 16, 0.4),
   } as const;
 
-  // Base Paper theme (mono)
-  const basePaperTheme = colorScheme === 'dark' ? MonoDarkTheme : MonoLightTheme;
+  const basePaperTheme = theme === 'dark' ? MonoDarkTheme : MonoLightTheme;
 
-  // Navigation theme adattato da Paper (garantisce compatibilità chiavi)
   const { LightTheme: NavPaperLight, DarkTheme: NavPaperDark } = adaptNavigationTheme({
     reactNavigationLight: NavLight,
     reactNavigationDark: NavDark,
   });
+  const baseNavTheme = theme === 'dark' ? NavPaperDark : NavPaperLight;
 
-  const baseNavTheme = (colorScheme === 'dark' ? NavPaperDark : NavPaperLight);
-
-  // Unifica: usiamo i colori del tema mono come "fonte", completati da chiavi Navigation
   const unifiedColors = {
     ...baseNavTheme.colors,
     ...basePaperTheme.colors,
-    // mapping consigliato per Navigation
     card: basePaperTheme.colors.surface,
     border: basePaperTheme.colors.outline,
     notification: basePaperTheme.colors.primary,
@@ -84,7 +76,6 @@ export function App() {
     text: basePaperTheme.colors.onBackground,
   };
 
-  // Tema unico da passare sia a Paper che a Navigation
   const appTheme = {
     ...basePaperTheme,
     ...baseNavTheme,
@@ -98,5 +89,13 @@ export function App() {
         <AuthStackNavigation />
       </NavigationContainer>
     </PaperProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
