@@ -10,10 +10,11 @@ import { DefaultTheme as NavLight, DarkTheme as NavDark, NavigationContainer } f
 
 import { MonoLightTheme } from '@/theme/lightTheme';
 import { MonoDarkTheme } from '@/theme/darkTheme';
-import AuthStackNavigation from '@/navigation/AuthStackNavigation/AuthStackNavigation';
 import { useEffect, useState } from 'react';
 import { initI18n } from './i18n';
 import { useThemeContext, ThemeProvider } from './context/themeContext';
+import { LoadAppReady } from './screens/LoadAppReady/LoadAppReady';
+import { GlobalLoader } from './components/ui/GlobalLoader';
 
 function AppContent() {
   const [i18nReady, setI18nReady] = useState(false);
@@ -86,7 +87,8 @@ function AppContent() {
   return (
     <PaperProvider theme={appTheme}>
       <NavigationContainer theme={appTheme as any}>
-        <AuthStackNavigation />
+        <GlobalLoader />
+        <LoadAppReady />
       </NavigationContainer>
     </PaperProvider>
   );

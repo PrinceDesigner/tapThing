@@ -4,7 +4,7 @@ import { MD3LightTheme, MD3Theme } from "react-native-paper";
 const mono = {
   // Base
   bg:           "#FFFFFF",
-  surface:      "#FFFFFF",
+  surface:      "#f6f6f6ff",
   surfaceVar:   "#F6F6F6",           // liste / toolbar
   text:         "#0A0A0A",
   textMuted:    "rgba(10,10,10,0.72)",

@@ -17,6 +17,7 @@ module.exports = function (api) {
             '@providers': './src/providers',
             '@locales': './src/locales',
             '@context': './src/context',
+            '@store': './src/store',
             // aggiungi qui eventuali altri alias
           },
         },

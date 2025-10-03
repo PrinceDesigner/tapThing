@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { setAppLanguage } from '@/i18n';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeContext } from '@/context/themeContext';
+import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
 
 type Props = { onGetStarted?: () => void };
 
@@ -15,6 +16,8 @@ const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
   const theme = useTheme();
   const isDark = theme.dark;
   const { toggleTheme, theme: currentTheme } = useThemeContext();
+
+  const { isLoading, setLoading } = useLoadingStore();
 
   const navigate = useNavigation<any>();
   const { t } = useTranslation();
@@ -47,7 +50,6 @@ const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
           <TextRegular style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
             {t('subtitle')}
           </TextRegular>
-
           <Button
             mode="contained"
             onPress={() => navigate.navigate('Register')}

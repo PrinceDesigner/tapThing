@@ -6,5 +6,13 @@
   "continue": "Continue",
   "phone_number": "Phone number",
   "enter_phone": "Enter your phone to continue",
-  "register": "Register"
+  "register": "Register",
+  "verify_otp": "Verify OTP",
+  "resend_otp": "Resend OTP",
+  "resend_in": "Resend in {{resendIn}}s",
+  "didnt_receive_code": "Didn't receive the code? Resend",
+  "enter_code": "Enter the code sent to {{phone}}",
+  "unlock_world": "Post to unlock the world",
+  "dark_theme": "Dark Theme",
+  "light_theme": "Light Theme"
 }

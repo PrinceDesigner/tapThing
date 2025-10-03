@@ -27,6 +27,7 @@ const PhoneAuthScreen: React.FC = () => {
     const normalized = phone.replace(/\s+/g, '');
     if (isValid) {
       // Procedi con l'invio del codice di verifica
+      nav.navigate('VerifyOTP', { phone: normalized });
       console.log('Invio codice a:', normalized);
       // Qui puoi integrare la logica per inviare il codice via SMS
     }

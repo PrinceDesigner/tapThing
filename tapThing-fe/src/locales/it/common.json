@@ -6,5 +6,13 @@
   "continue": "Continua",
   "phone_number": "Numero di telefono",
   "enter_phone": "Inserisci il tuo numero di telefono per continuare",
-  "register": "Registrati"
+  "register": "Registrati",
+  "verify_otp": "Verifica OTP",
+  "resend_otp": "Invia di nuovo OTP",
+  "resend_in": "Invia di nuovo tra {{resendIn}}s",
+  "didnt_receive_code": "Non hai ricevuto il codice? Invia di nuovo",
+  "enter_code": "Inserisci il codice inviato a {{phone}}",
+  "unlock_world": "Pubblica per sbloccare il mondo",
+  "dark_theme": "Tema scuro",
+  "light_theme": "Tema chiaro"
 }
