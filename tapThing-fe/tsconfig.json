@@ -9,7 +9,29 @@
       ],
       "@/components/*": [
         "./src/components/*"
-      ]
+      ],
+      "@/theme/*": [
+        "./src/theme/*"
+      ],
+      "@/screens/*": [
+        "./src/screens/*"
+      ],
+      "@/navigation/*": [
+        "./src/navigation/*"
+      ],
+      "@/assets/*": [
+        "./src/assets/*"
+      ],
+      "@/hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@providers/*": [
+        "./src/providers/*"
+      ],
+      "@locales/*": [
+        "./src/locales/*"
+      ],
+
     }
   },
   "include": [

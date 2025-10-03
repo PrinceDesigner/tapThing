@@ -1,31 +1,71 @@
-import { TextBold, TextRegular } from "@/components/ui/customText";
-import React from "react";
-import {
-  View,
-  Text,
-  ImageBackground,
-  TouchableOpacity,
-  StyleSheet,
-  StatusBar,
-} from "react-native";
+// src/screens/AuthStackScreen/LandingScreen.tsx
+import React, { use } from 'react';
+import { StyleSheet, View, StatusBar } from 'react-native';
+import { Button, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { TextBold, TextRegular } from '@/components/ui/customText';
+import { useTranslation } from 'react-i18next';
+import { setAppLanguage } from '@/i18n';
+import { useNavigation } from '@react-navigation/native';
 
-// Sostituisci con il tuo asset locale
-// import heroImage from "@/assets/hero-dark.jpg";
-const heroImage = { uri: "https://picsum.photos/1200/2000" }; // segnaposto
+type Props = { onGetStarted?: () => void };
 
-const TapThingLandingScreen: React.FC = () => {
+const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
+  const theme = useTheme();
+  const isDark = theme.dark;
+
+  const navigate = useNavigation<any>();
+
+  const { t } = useTranslation();
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+      <StatusBar
+        translucent={false}
+        backgroundColor={theme.colors.background as string}
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+      />
+
       <View style={styles.container}>
+        {/* Contenuto centrale */}
+        <View style={styles.centerContent}>
+          <TextBold style={[styles.title, { color: theme.colors.onBackground }]}>
+            {t('brand')}
+          </TextBold>
 
+          <TextRegular style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
+            {t('subtitle')}
+          </TextRegular>
 
-        <View style={styles.contentWrapper}>
-          <TextBold style={styles.title}>tapThing</TextBold>
-          <TextRegular style={[styles.subtitle, {margin: 0}]}>Post to unlock the world.</TextRegular>
+          <Button
+            mode="contained"
+            onPress={() => navigate.navigate('Register')}
+            style={styles.button}
+            contentStyle={styles.buttonContent}
+          >
+            {t('get_started')}
+          </Button>
         </View>
 
+        {/* Footer lingua */}
+        <View style={styles.footer}>
+          <Button
+            compact
+            mode="text"
+            onPress={() => setAppLanguage('en')}
+            labelStyle={{ color: theme.colors.onSurfaceVariant }}
+          >
+            English
+          </Button>
+          <Button
+            compact
+            mode="text"
+            onPress={() => setAppLanguage('it')}
+            labelStyle={{ color: theme.colors.onSurfaceVariant }}
+          >
+            Italiano
+          </Button>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -34,42 +74,25 @@ const TapThingLandingScreen: React.FC = () => {
 export default TapThingLandingScreen;
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#000", // fallback sotto l’immagine
-  },
+  safe: { flex: 1 },
   container: {
     flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)", // simile a opacity-30 del web
-  },
-  contentWrapper: {
+  centerContent: {
     flex: 1,
-    maxWidth: 720,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  title: {
-    fontSize: 48, // ~ text-6xl
-    fontWeight: "700",
-    color: "#fff",
-    textAlign: "center",
-    letterSpacing: -0.5,
-    // marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 20, // ~ text-xl
-    color: "rgba(255,255,255,0.8)",
-    textAlign: "center",
-  },
-  description: {
-    fontSize: 16, // ~ text-base
-    lineHeight: 24,
-    textAlign: "center",
-    marginBottom: 28,
+  title: { fontSize: 44, marginBottom: 8 },
+  subtitle: { fontSize: 16, marginBottom: 32, textAlign: 'center' },
+  button: { borderRadius: 12, alignSelf: 'stretch' },
+  buttonContent: { height: 52 },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
 });

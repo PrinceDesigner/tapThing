@@ -1,7 +1,8 @@
 // components/CustomText.js
 
 import React from "react";
-import { Text, TextProps, TextStyle, StyleProp } from "react-native";
+import { TextProps, TextStyle, StyleProp } from "react-native";
+import { Text } from "react-native-paper";
 
 // Define a type for the custom text props
 type CustomTextProps = {
@@ -21,7 +22,7 @@ const BaseText: React.FC<CustomTextProps> = ({ style, children, ...rest }) => {
 export const TextRegular: React.FC<CustomTextProps> = ({ style, children, ...rest }) => {
   return (
     <BaseText
-      style={[{ fontFamily: "RobotoCondensed" }, style]}
+      style={[{ fontFamily: "RobotoCondensed-Regular" }, style]}
       {...rest}
     >
       {children}
@@ -32,7 +33,7 @@ export const TextRegular: React.FC<CustomTextProps> = ({ style, children, ...res
 export const TextLight: React.FC<CustomTextProps> = ({ style, children, ...rest }) => {
   return (
     <BaseText
-      style={[{ fontFamily: "RobotoLightCondensed" }, style]}
+      style={[{ fontFamily: "RobotoCondensed-Light" }, style]}
       {...rest}
     >
       {children}
@@ -43,7 +44,7 @@ export const TextLight: React.FC<CustomTextProps> = ({ style, children, ...rest 
 export const TextMedium: React.FC<CustomTextProps> = ({ style, children, ...rest }) => {
   return (
     <BaseText
-      style={[{ fontFamily: "RobotoMediumCondensed" }, style]}
+      style={[{ fontFamily: "RobotoCondensed-Medium" }, style]}
       {...rest}
     >
       {children}
@@ -54,7 +55,7 @@ export const TextMedium: React.FC<CustomTextProps> = ({ style, children, ...rest
 export const TextBold: React.FC<CustomTextProps> = ({ style, children, ...rest }) => {
   return (
     <BaseText
-      style={[{ fontFamily: "RobotoBoldCondensed" }, style]}
+      style={[{ fontFamily: "RobotoCondensed-Bold" }, style]}
       {...rest}
     >
       {children}

@@ -5,16 +5,22 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "src/assets/images/tapThingNeroTrasparente.png",
+    "backgroundColor": "#000000",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scheme": "tapthingfe",
+    "splash": {
+      "backgroundColor": "#000000",
+      "image": "src/assets/images/tapThingNeroTrasparente.png",
+      "resizeMode": "contain"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "src/assets/images/tapThingNeroTrasparente.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#000"
       }
     },
     "web": {
@@ -25,7 +31,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#000",
           "image": "src/assets/images/tapThingNeroTrasparente.png"
         }
       ]
