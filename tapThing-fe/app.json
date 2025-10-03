@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "tapThing-fe",
+    "slug": "tapThing-fe",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "src/assets/images/tapThingNeroTrasparente.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "tapthingfe",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "src/assets/images/tapThingNeroTrasparente.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "src/assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-asset",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "src/assets/images/tapThingNeroTrasparente.png"
+        }
+      ]
+    ]
+  }
+}
