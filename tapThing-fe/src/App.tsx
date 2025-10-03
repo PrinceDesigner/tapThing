@@ -1,10 +1,16 @@
 import 'react-native-reanimated';
-import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import * as React from 'react';
 import { useColorScheme } from 'react-native';
+import {
+  TextRegular,
+  TextLight,
+  TextMedium,
+  TextBold,
+} from "@/components/ui/customText";
+import { View } from 'react-native';
 import { Colors } from './constants/Colors';
+import TapThingLandingScreen from './screens/AuthStackScreen/LandingScreen';
+
 // SplashScreen.preventAutoHideAsync();
 
 export function App() {
@@ -22,5 +28,5 @@ export function App() {
     return null;
   }
 
-  return null
+ return <TapThingLandingScreen />;  
 }
