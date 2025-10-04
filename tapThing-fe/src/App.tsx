@@ -1,5 +1,5 @@
 // App.tsx
-import 'react-native-reanimated';
+
 import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import {
@@ -16,6 +16,7 @@ import { useThemeContext, ThemeProvider } from './context/themeContext';
 import { LoadAppReady } from './screens/LoadAppReady/LoadAppReady';
 import { GlobalLoader } from './components/ui/GlobalLoader';
 import { GlobalSnackbar } from './components/ui/GlobalSnackbar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function AppContent() {
   const [i18nReady, setI18nReady] = useState(false);
@@ -100,8 +101,10 @@ export default function App() {
 
 
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <GestureHandlerRootView>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

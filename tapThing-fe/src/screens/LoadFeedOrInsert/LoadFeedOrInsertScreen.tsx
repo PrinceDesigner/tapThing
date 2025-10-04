@@ -2,11 +2,12 @@ import FeedStackScreensNavigation from '@/navigation/FeedStackScreens/FeedStackS
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { InsertPhotoScreen } from '../InsertPhotoScreen/InsertPhotoScreen';
+import PromptLandingStackNavigation from '@/navigation/PromptLandingStackNavigation/PromptLandingStackNavigation';
 
 const LoadFeedOrInsertScreen: React.FC = () => {
     const prompt = false
 
-    return prompt ? <FeedStackScreensNavigation /> : <InsertPhotoScreen />;
+    return prompt ? <FeedStackScreensNavigation /> : <PromptLandingStackNavigation />;
 };
 
 const styles = StyleSheet.create({

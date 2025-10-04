@@ -15,7 +15,11 @@
       "resizeMode": "contain"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "L'app usa la fotocamera per scattare foto per lo stimolo del giorno.",
+        "NSPhotoLibraryUsageDescription": "L'app accede alla libreria per selezionare una foto."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -34,7 +38,11 @@
           "backgroundColor": "#000",
           "image": "src/assets/images/tapThingNeroTrasparente.png"
         }
-      ]
+      ],
+        ["expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }]
     ]
   }
 }

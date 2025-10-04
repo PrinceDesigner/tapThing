@@ -17,5 +17,20 @@
   "light_theme": "Light Theme",
   "verify": "Verify",
   "logout_error": "An unexpected error occurred. Please try again.",
-  "invalid_phone": "Please enter a valid phone number"
+  "invalid_phone": "Please enter a valid phone number",
+  "feed_lock": "To see the feed you must first post a photo for today's prompt.",
+  "upload_or_take_photo": "Upload a photo",
+  "take_photo": "Take photo",
+  "select_image": "Select image",
+  "publish_now": "Publish now",
+  "how_it_works": "How does tapThing work?",
+  "one_prompt_per_day": "One prompt per day",
+  "daily_prompt_description": "Everyone gets the same daily theme, with a limited time to participate.",
+  "photo_to_unlock": "One photo to unlock",
+  "photo_to_unlock_description": "Post one photo to unlock the global feed.",
+  "post_to_unlock_feed": "Post to unlock the feed",
+  "post_to_unlock_feed_description": "Only after sharing your photo you will be able to see others'. Fair play!",
+  "no_filters_more_authenticity": "3) No filters, more authenticity",
+  "no_filters_more_authenticity_description": "Snap and share your point of view without excess.",
+  "insert_photo": "Insert photo"
 }

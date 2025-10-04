@@ -13,6 +13,9 @@ import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
 import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import { logout } from '@/api/supabase/supabase.api';
 import LoadFeedOrInsertScreen from '@/screens/LoadFeedOrInsert/LoadFeedOrInsertScreen';
+import i18n, { setAppLanguage } from '@/i18n';
+import { DailyPromptStaticScreen } from '@/screens/PromptLandingScreen/PromptLandingScree';
+
 
 const Drawer = createDrawerNavigator();
 
@@ -68,8 +71,10 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   const isDark = theme.dark;
   const { toggleTheme } = useThemeContext();
   const { t } = useTranslation();
+
   const { setLoading } = useLoadingStore();
   const { show } = useSnackbarStore();
+
 
   const handleLogout = async () => {
     setLoading(true);
@@ -93,7 +98,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
         <DrawerItemList {...props} />
       </View>
 
-      {/* Footer con toggle fisso e logout */}
+      {/* Footer con toggle fisso, selezione lingua e logout */}
       <View
         style={{
           padding: 16,
@@ -101,6 +106,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
           borderTopColor: theme.colors.outline,
         }}
       >
+        {/* Tema */}
         <View
           style={{
             flexDirection: 'row',
@@ -112,6 +118,53 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
           <Text variant="bodyMedium">{!isDark ? t('dark_theme') : t('light_theme')}</Text>
           <Switch value={isDark} onValueChange={toggleTheme} />
         </View>
+
+        {/* Lingua */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 16,
+          }}
+        >
+          <Text variant="bodyMedium">{t('language')}</Text>
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity
+              onPress={() => setAppLanguage('it')}
+              style={{
+                backgroundColor: i18n.language === 'it' ? theme.colors.primary : theme.colors.surface,
+                borderWidth: 1,
+                borderColor: theme.colors.outline,
+                borderRadius: 6,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                marginRight: 8,
+              }}
+            >
+              <Text style={{ color: i18n.language === 'it' ? theme.colors.onPrimary : theme.colors.onSurface, fontWeight: i18n.language === 'it' ? 'bold' : 'normal' }}>
+                IT
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setAppLanguage('en')}
+              style={{
+                backgroundColor: i18n.language === 'en' ? theme.colors.primary : theme.colors.surface,
+                borderWidth: 1,
+                borderColor: theme.colors.outline,
+                borderRadius: 6,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={{ color: i18n.language === 'en' ? theme.colors.onPrimary : theme.colors.onSurface, fontWeight: i18n.language === 'en' ? 'bold' : 'normal' }}>
+                EN
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Logout */}
         <TouchableOpacity
           onPress={handleLogout}
           style={{
@@ -142,17 +195,12 @@ const DrawerStackNavigation = () => (
     <Drawer.Screen
       name="Home"
       options={{ title: 'Home' }}
-      children={() => <LoadFeedOrInsertScreen  />}
+      children={() => <LoadFeedOrInsertScreen />}
     />
     <Drawer.Screen
       name="Profile"
       options={{ title: 'Profile' }}
       children={() => <PlaceholderScreen title="Profile" />}
-    />
-    <Drawer.Screen
-      name="Settings"
-      options={{ title: 'Settings' }}
-      children={() => <PlaceholderScreen title="Settings" />}
     />
   </Drawer.Navigator>
   // </NavigationContainer>

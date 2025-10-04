@@ -1,8 +1,13 @@
+// babel.config.js
 module.exports = function (api) {
   api.cache(true);
+
+  const isProd = process.env.NODE_ENV === 'production';
+
   return {
     presets: ['babel-preset-expo'],
     plugins: [
+      // Alias
       [
         'module-resolver',
         {
@@ -22,15 +27,15 @@ module.exports = function (api) {
             '@utils': './src/utils',
             '@config': './src/config',
             '@api': './src/api',
-            // aggiungi qui eventuali altri alias
           },
         },
       ],
+
+      // Paper va PRIMA di Reanimated
+      ...(isProd ? ['react-native-paper/babel'] : []),
+
+      // Deve essere SEMPRE l'ultimo
+      'react-native-reanimated/plugin',
     ],
-    env: {
-      production: {
-        plugins: ['react-native-paper/babel'],
-      },
-    },
   };
 };

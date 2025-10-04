@@ -17,5 +17,20 @@
   "light_theme": "Tema chiaro",
   "verify": "Verifica",
   "logout_error": "Si è verificato un errore imprevisto. Per favore riprova.",
-  "invalid_phone": "Per favore inserisci un numero di telefono valido"
+  "invalid_phone": "Per favore inserisci un numero di telefono valido",
+  "feed_lock": "Per vedere il feed devi prima pubblicare una foto per lo stimolo di oggi.",
+  "upload_or_take_photo": "Fai una foto",
+  "take_photo": "Scatta una foto",
+  "select_image": "Seleziona immagine",
+  "publish_now": "Pubblica ora",
+  "how_it_works": "Come funziona tapThing?",
+  "one_prompt_per_day": "Uno stimolo al giorno",
+  "daily_prompt_description": "Tutti ricevono lo stesso tema quotidiano, con un tempo limitato per partecipare.",
+  "photo_to_unlock": "Una foto per sbloccare",
+  "photo_to_unlock_description": "Pubblica una foto per sbloccare il feed globale.",
+  "post_to_unlock_feed": "Pubblica per sbloccare il feed",
+  "post_to_unlock_feed_description": "Solo dopo aver condiviso la tua foto potrai vedere quelle degli altri. Fair play!",
+  "no_filters_more_authenticity": "Niente filtri, più autenticità",
+  "no_filters_more_authenticity_description": "Scatta al volo e condividi il tuo punto di vista senza eccessi.",
+  "insert_photo": "Inserisci foto"
 }
