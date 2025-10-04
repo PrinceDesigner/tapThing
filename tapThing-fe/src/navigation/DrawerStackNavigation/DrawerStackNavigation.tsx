@@ -14,6 +14,7 @@ import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
 import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import { logout } from '@/api/supabase/supabase.api';
 import { useAuthClienteStore } from '@/store/auth/AuthClienteStore';
+import { InsertPhotoScreen } from '@/screens/InsertPhotoScreen/InsertPhotoScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -143,7 +144,7 @@ const DrawerStackNavigation = () => (
     <Drawer.Screen
       name="Home"
       options={{ title: 'Home' }}
-      children={() => <PlaceholderScreen title="Home" />}
+      children={() => <InsertPhotoScreen  />}
     />
     <Drawer.Screen
       name="Profile"

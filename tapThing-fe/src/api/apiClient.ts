@@ -1,6 +1,8 @@
 import 'react-native-get-random-values'
 import { useAuthClienteStore } from '@/store/auth/AuthClienteStore';
 import { v4 as uuidv4 } from 'uuid';
+import i18n from '@/i18n'; // 👈 stessa istanza usata in App.tsx
+
 
 
 export const apiClient = {
@@ -27,6 +29,8 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${accessToken}`,
     'x-trace-id': traceId, // ✅ lo aggiungiamo qui
+    'Accept-Language': i18n.language || 'en', // 👈 qui la magia
+
   };
 
 

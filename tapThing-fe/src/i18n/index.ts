@@ -16,6 +16,9 @@ const systemLang = (() => {
 
 export async function initI18n() {
   const stored = await AsyncStorage.getItem(STORAGE_KEY);
+  if (!stored) {
+    await AsyncStorage.setItem(STORAGE_KEY, systemLang);
+  }
   const lng = stored || systemLang;
 
   await i18n
