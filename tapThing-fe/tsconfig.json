@@ -36,12 +36,25 @@
       ],
       "@store/*": [
         "./src/store/*"
+      ],
+      "@libs/*": [
+        "./src/libs/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ],
+      "@config/*": [
+        "./src/config/*"
+      ],
+      "@api/*": [
+        "./src/api/*"
       ]
+
 
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx"
-  ]
+, "src/config/reactotron.js"  ]
 }

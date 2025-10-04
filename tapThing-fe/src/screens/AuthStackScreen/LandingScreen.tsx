@@ -1,5 +1,5 @@
 // src/screens/AuthStackScreen/LandingScreen.tsx
-import React from 'react';
+import React, { use, useEffect } from 'react';
 import { StyleSheet, View, StatusBar } from 'react-native';
 import { Button, IconButton, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,19 +8,17 @@ import { useTranslation } from 'react-i18next';
 import { setAppLanguage } from '@/i18n';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeContext } from '@/context/themeContext';
-import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
 
 type Props = { onGetStarted?: () => void };
 
 const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
   const theme = useTheme();
-  const isDark = theme.dark;
-  const { toggleTheme, theme: currentTheme } = useThemeContext();
-
-  const { isLoading, setLoading } = useLoadingStore();
-
   const navigate = useNavigation<any>();
+  const { toggleTheme, theme: currentTheme } = useThemeContext();
   const { t } = useTranslation();
+
+  const isDark = theme.dark;
+
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>

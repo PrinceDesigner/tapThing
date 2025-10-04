@@ -18,6 +18,10 @@ module.exports = function (api) {
             '@locales': './src/locales',
             '@context': './src/context',
             '@store': './src/store',
+            '@libs': './src/libs',
+            '@utils': './src/utils',
+            '@config': './src/config',
+            '@api': './src/api',
             // aggiungi qui eventuali altri alias
           },
         },

@@ -16,6 +16,10 @@ import {
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/libs/supabase/supabase.client";
+import { useLoadingStore } from "@/store/loaderStore/loaderGlobalStore";
+import { useSnackbarStore } from "@/store/snackbar/snackbar.store";
+import { Keyboard } from "react-native";
 
 
 type RouteParams = {
@@ -23,15 +27,17 @@ type RouteParams = {
 };
 
 const SLOTS = 6;
-const RESEND_SECONDS = 30;
+const RESEND_SECONDS = 120;
 
 const VerifyOTPScreen: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation<any>();
   const route = useRoute();
 
-  const { t } = useTranslation();
+  const { setLoading } = useLoadingStore();
+  const { show } = useSnackbarStore();
 
+  const { t } = useTranslation();
   const { phone = "" } = (route.params as RouteParams) || {};
 
   const [digits, setDigits] = useState<string[]>(Array(SLOTS).fill(""));
@@ -96,15 +102,34 @@ const VerifyOTPScreen: React.FC = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isComplete) return;
+    Keyboard.dismiss();
+    setLoading(true);
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.verifyOtp({
+        phone: phone,
+        token: otp,
+        type: "sms",
+      });
 
-    const data = {
-      phone: phone,
-      token: otp,
-      type: "sms",
+      if (error) {
+        // handle error (e.g., show a message)
+        show(error.message, 'error');
+        return;
+      }
+      // handle successful verification (e.g., navigate)
+      // navigation.navigate("Home", { verified: true });
+    } catch (err) {
+      // handle unexpected errors
+      show("An unexpected error occurred. Please try again.", 'error');
+    } finally {
+      setLoading(false);
     }
-    console.log("Submitting OTP:", data);
+
     // navigation.navigate("Home", { verified: true });
   };
 
@@ -165,7 +190,7 @@ const VerifyOTPScreen: React.FC = () => {
             disabled={!isComplete}
             style={styles.verifyBtn}
           >
-            Verify
+            {t('verify')}
           </Button>
 
           <Button

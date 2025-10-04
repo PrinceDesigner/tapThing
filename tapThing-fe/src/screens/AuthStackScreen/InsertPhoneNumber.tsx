@@ -1,35 +1,80 @@
 // src/screens/AuthStackScreen/PhoneAuthScreen.tsx
 import { TextBold } from '@/components/ui/customText';
 import { useNavigation } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, StatusBar, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { Button, Text, TextInput, useTheme } from 'react-native-paper';
+import { Button, Text, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-
+import { supabase } from '@/libs/supabase/supabase.client';
+import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
+import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
+import PhoneInput, { IPhoneInputRef, ICountry } from "react-native-international-phone-number";
+import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
+import { Keyboard } from "react-native";
 
 const PhoneAuthScreen: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
+
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [countryCode, setCountryCode] = useState<string>('+39'); // default IT
+
+  const { setLoading } = useLoadingStore();
+  const { show } = useSnackbarStore();
+
   const isDark = theme.dark;
-
-  const [phone, setPhone] = useState('');
-
-  const { t, i18n } = useTranslation();
-
+  const phoneInputRef = useRef<IPhoneInputRef>(null);
   const nav = useNavigation<any>();
 
-  // Validazione semplice: inizia con + e almeno 8 cifre totali (E.164 light)
-  const isValid = useMemo(() => /^\+\d{8,15}$/.test(phone.replace(/\s+/g, '')), [phone]);
-  const language = i18n.language;
+  // Numero completo + validazione
+  const completePhone = useMemo(() => {
+    // Manteniamo solo cifre dalla parte locale (libreria visualizza spazi/separatori)
+    const localDigits = phoneNumber.replace(/\D/g, '');
+    // Costruiamo E.164 provvisorio: +{countryCodeDigits}{localDigits}
+    const prefixDigits = countryCode.startsWith('+') ? countryCode : `+${countryCode}`;
+    return `${prefixDigits}${localDigits}`;
+  }, [phoneNumber, countryCode]);
 
-  const handleContinue = () => {
-    const normalized = phone.replace(/\s+/g, '');
-    if (isValid) {
-      // Procedi con l'invio del codice di verifica
-      nav.navigate('VerifyOTP', { phone: normalized });
-      console.log('Invio codice a:', normalized);
-      // Qui puoi integrare la logica per inviare il codice via SMS
+  const parsedPhone = useMemo(() => {
+    try {
+      if (!completePhone || completePhone.length < 4) return undefined;
+      return parsePhoneNumberFromString(completePhone);
+    } catch {
+      return undefined;
+    }
+  }, [completePhone]);
+
+  const isValidPhone = !!parsedPhone?.isValid();
+
+  const handleContinue = async () => {
+    // Blocca submit se non valido
+    if (!isValidPhone) {
+      show(t('invalid_phone') || 'Inserisci un numero di telefono valido', 'error');
+      return;
+    }
+
+    Keyboard.dismiss();
+    setLoading(true);
+    // Invia sempre in E.164 standard (es. +393331234567)
+    const phoneToSend = parsedPhone?.number || completePhone;
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phoneToSend,
+        options: { channel: 'sms' },
+      });
+
+      if (error) {
+        show(error.message, 'error');
+        return;
+      }
+
+      nav.navigate('VerifyOTP', { phone: phoneToSend });
+    } catch (err: any) {
+      show(err?.message ?? 'Errore inatteso', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,8 +89,7 @@ const PhoneAuthScreen: React.FC = () => {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={80} // se hai header / safearea
-
+        keyboardVerticalOffset={80}
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
@@ -58,7 +102,7 @@ const PhoneAuthScreen: React.FC = () => {
                 TapThing
               </TextBold>
               <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
-                {t('enter_phone')}
+                {t('enter_phone') || 'Inserisci il tuo numero di telefono'}
               </Text>
             </View>
 
@@ -68,46 +112,48 @@ const PhoneAuthScreen: React.FC = () => {
                 variant="labelLarge"
                 style={[styles.label, { color: theme.colors.onSurface }]}
               >
-                {t('phone_number')}
+                {t('phone_number') || 'Numero di telefono'}
               </Text>
 
-              <TextInput
-                mode="outlined"
-                value={phone}
-                onChangeText={setPhone}
-                placeholder={language === 'it' ? '+39 333 123 4567' : '+1 555 123 4567'}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-                autoCorrect={false}
-                autoCapitalize="none"
-                returnKeyType="done"
-                onSubmitEditing={handleContinue}
-                style={styles.input}
-                outlineColor={theme.colors.outline}
-                theme={{
-                  colors: {
-                    placeholder: theme.colors.onSurfaceVariant,
-                  },
+              <PhoneInput
+                ref={phoneInputRef}
+                defaultCountry="IT"
+                value={phoneNumber}
+                onChangePhoneNumber={(value) => {
+                  setPhoneNumber(value);
                 }}
+                onChangeSelectedCountry={(country: ICountry) => {
+                  // Alcuni paesi hanno più suffixes: prendiamo il primo come default.
+                  const cc = `${country?.idd?.root ?? '+'}${country?.idd?.suffixes?.[0] ?? ''}`.trim();
+                  setCountryCode(cc || '+');
+                }}
+                placeholder={t('phone_placeholder') || 'Inserisci il tuo numero'}
               />
+
+              {/* Errore inline (UX) */}
+              {!!phoneNumber && !isValidPhone && (
+                <Text variant="bodySmall" style={{ marginTop: 6, color: theme.colors.error }}>
+                  {t('invalid_phone') || 'Numero non valido'}
+                </Text>
+              )}
 
               <Button
                 mode="contained"
                 onPress={handleContinue}
-                disabled={!isValid}
                 style={styles.cta}
                 contentStyle={styles.ctaContent}
                 accessibilityLabel="Continue"
                 testID="btn-continue"
+                disabled={!isValidPhone}
               >
-                {t('continue')}
+                {t('continue') || 'Continua'}
               </Button>
             </View>
 
             {/* Footer */}
             <View style={styles.footer}>
               <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
-                {t('post_photo')}
+                {t('post_photo') || 'Scatta e pubblica per entrare nel feed'}
               </Text>
             </View>
           </View>
@@ -147,6 +193,7 @@ const styles = StyleSheet.create({
   },
   cta: {
     borderRadius: 12,
+    marginTop: 8,
   },
   ctaContent: {
     height: 52,

@@ -1,5 +1,6 @@
 // App.tsx
 import 'react-native-reanimated';
+import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import {
   Provider as PaperProvider,
@@ -8,13 +9,13 @@ import {
 } from 'react-native-paper';
 import { DefaultTheme as NavLight, DarkTheme as NavDark, NavigationContainer } from '@react-navigation/native';
 
-import { MonoLightTheme } from '@/theme/lightTheme';
-import { MonoDarkTheme } from '@/theme/darkTheme';
-import { useEffect, useState } from 'react';
+import { MonoLightTheme } from './theme/lightTheme';
+import { MonoDarkTheme } from './theme/darkTheme';
 import { initI18n } from './i18n';
 import { useThemeContext, ThemeProvider } from './context/themeContext';
 import { LoadAppReady } from './screens/LoadAppReady/LoadAppReady';
 import { GlobalLoader } from './components/ui/GlobalLoader';
+import { GlobalSnackbar } from './components/ui/GlobalSnackbar';
 
 function AppContent() {
   const [i18nReady, setI18nReady] = useState(false);
@@ -88,6 +89,7 @@ function AppContent() {
     <PaperProvider theme={appTheme}>
       <NavigationContainer theme={appTheme as any}>
         <GlobalLoader />
+        <GlobalSnackbar />
         <LoadAppReady />
       </NavigationContainer>
     </PaperProvider>
@@ -95,6 +97,10 @@ function AppContent() {
 }
 
 export default function App() {
+
+  if (__DEV__) { import('./config/reactotron').then(() => console.log('Reactotron Configurato')); }
+
+
   return (
     <ThemeProvider>
       <AppContent />

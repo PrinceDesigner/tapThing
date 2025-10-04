@@ -14,5 +14,8 @@
   "enter_code": "Inserisci il codice inviato a {{phone}}",
   "unlock_world": "Pubblica per sbloccare il mondo",
   "dark_theme": "Tema scuro",
-  "light_theme": "Tema chiaro"
+  "light_theme": "Tema chiaro",
+  "verify": "Verifica",
+  "logout_error": "Si è verificato un errore imprevisto. Per favore riprova.",
+  "invalid_phone": "Per favore inserisci un numero di telefono valido"
 }

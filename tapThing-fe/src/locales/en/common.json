@@ -14,5 +14,8 @@
   "enter_code": "Enter the code sent to {{phone}}",
   "unlock_world": "Post to unlock the world",
   "dark_theme": "Dark Theme",
-  "light_theme": "Light Theme"
+  "light_theme": "Light Theme",
+  "verify": "Verify",
+  "logout_error": "An unexpected error occurred. Please try again.",
+  "invalid_phone": "Please enter a valid phone number"
 }
