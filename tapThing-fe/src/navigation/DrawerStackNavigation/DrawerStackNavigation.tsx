@@ -1,6 +1,5 @@
 import React, { use } from 'react';
 import { createDrawerNavigator, DrawerContentComponentProps, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
-import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar, Switch, View } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
@@ -13,8 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
 import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import { logout } from '@/api/supabase/supabase.api';
-import { useAuthClienteStore } from '@/store/auth/AuthClienteStore';
-import { InsertPhotoScreen } from '@/screens/InsertPhotoScreen/InsertPhotoScreen';
+import LoadFeedOrInsertScreen from '@/screens/LoadFeedOrInsert/LoadFeedOrInsertScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -144,7 +142,7 @@ const DrawerStackNavigation = () => (
     <Drawer.Screen
       name="Home"
       options={{ title: 'Home' }}
-      children={() => <InsertPhotoScreen  />}
+      children={() => <LoadFeedOrInsertScreen  />}
     />
     <Drawer.Screen
       name="Profile"
