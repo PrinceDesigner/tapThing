@@ -57,5 +57,11 @@
   "feel_desc": "Un dettaglio, un oggetto, un posto, un volto: qualunque cosa ti faccia pensare allo stimolo di oggi.",
   "no_obligation_title": "Nessun obbligo",
   "no_obligation_desc": "Se non ti parla, nessun problema: posa il telefono e torna quando vuoi.",
-  "post_only_if_moved": "Pubblica solo se lo stimolo ti accende qualcosa. Altrimenti posa il telefono e goditi la giornata."
+  "post_only_if_moved": "Pubblica solo se lo stimolo ti accende qualcosa. Altrimenti posa il telefono e goditi la giornata.",
+  "reactions_title": "Reazioni, non parole",
+  "reactions_desc": "Niente commenti, niente chat: ogni post può ricevere solo una reazione per persona. Un’emozione, non una discussione.",
+  "profile": "Profilo",
+  "edit_profile_button": "Modifica profilo",
+  "first_name": "Nome",
+  "last_name": "Cognome"
 }

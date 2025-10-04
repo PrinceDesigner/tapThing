@@ -57,5 +57,11 @@
   "feel_desc": "A detail, an object, a place, a face—whatever makes you think of today’s stimulus.",
   "no_obligation_title": "No obligation",
   "no_obligation_desc": "If it doesn’t move you, no worries: put down the phone and live your day.",
-  "post_only_if_moved": "Post only if the prompt sparks something in you. Otherwise, put down your phone and enjoy your day."
+  "post_only_if_moved": "Post only if the prompt sparks something in you. Otherwise, put down your phone and enjoy your day.",
+  "reactions_title": "Reactions, not words",
+  "reactions_desc": "No comments, no chat: each post can receive only one reaction per person. An emotion, not a discussion.",
+  "profile": "Profile",
+  "edit_profile_button": "Edit Profile",
+  "first_name": "First Name",
+  "last_name": "Last Name"
 }

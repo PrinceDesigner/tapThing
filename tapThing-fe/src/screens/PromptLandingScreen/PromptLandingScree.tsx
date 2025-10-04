@@ -22,6 +22,7 @@ export const DailyPromptStaticScreen: React.FC = () => {
   // --- TIMER/COUNTDOWN ---
   const expiry = useMemo(() => Date.now() + 23 * 60 * 60 * 1000, []);
   const [remaining, setRemaining] = useState<number>(Math.max(0, expiry - Date.now()));
+  
   useEffect(() => {
     const id = setInterval(() => setRemaining(Math.max(0, expiry - Date.now())), 1000);
     return () => clearInterval(id);

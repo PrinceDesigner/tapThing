@@ -15,6 +15,7 @@ import { logout } from '@/api/supabase/supabase.api';
 import LoadFeedOrInsertScreen from '@/screens/LoadFeedOrInsert/LoadFeedOrInsertScreen';
 import i18n, { setAppLanguage } from '@/i18n';
 import HowToScreen from '@/screens/HowToScren/HowToScreen';
+import ProfiloStackScreensNavigation from '../ProfiloStacNavigator/ProfiloStackNavigator';
 
 
 const Drawer = createDrawerNavigator();
@@ -201,8 +202,8 @@ const DrawerStackNavigation = () => {
       />
       <Drawer.Screen
         name="Profile"
-        options={{ title: 'Profile' }}
-        children={() => <PlaceholderScreen title="Profile" />}
+        options={{ title: t('profile') }}
+        children={() => <ProfiloStackScreensNavigation />}
       />
 
       <Drawer.Screen

@@ -26,7 +26,7 @@ const HowItFeels: React.FC = () => {
       </Banner>
 
       {/* Intro breve e intensa */}
-      <Text
+      {/* <Text
         style={{
           marginTop: 10,
           color: theme.colors.onSurfaceVariant,
@@ -35,7 +35,7 @@ const HowItFeels: React.FC = () => {
         }}
       >
         {t("intro")}
-      </Text>
+      </Text> */}
 
       <List.Section>
         <List.Item
@@ -59,6 +59,12 @@ const HowItFeels: React.FC = () => {
           left={(p) => <List.Icon {...p} icon="clock-time-three-outline" />}
         />
 
+        <List.Item
+          title={t("reactions_title")}
+          description={t("reactions_desc")}
+          descriptionNumberOfLines={5}
+          left={(p) => <List.Icon {...p} icon="emoticon-outline" />}
+        />
         <List.Item
           title={t("authenticity_title")}
           description={t("authenticity_desc")}

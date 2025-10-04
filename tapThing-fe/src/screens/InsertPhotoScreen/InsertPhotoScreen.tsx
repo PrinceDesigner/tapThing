@@ -1,4 +1,4 @@
-import React, { use, useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View, ScrollView, Pressable, TouchableOpacity } from "react-native";
 import {
@@ -12,7 +12,6 @@ import {
 } from "react-native-paper";
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from "react-native"
-import { useImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import HowWork from "@/components/ui/HowWork";
 
 
