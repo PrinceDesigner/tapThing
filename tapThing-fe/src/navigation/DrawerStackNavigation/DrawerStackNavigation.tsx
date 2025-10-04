@@ -1,4 +1,4 @@
-import React, { use } from 'react';
+import React from 'react';
 import { createDrawerNavigator, DrawerContentComponentProps, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { StatusBar, Switch, View } from 'react-native';
 import { TouchableOpacity } from 'react-native';
@@ -14,7 +14,7 @@ import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import { logout } from '@/api/supabase/supabase.api';
 import LoadFeedOrInsertScreen from '@/screens/LoadFeedOrInsert/LoadFeedOrInsertScreen';
 import i18n, { setAppLanguage } from '@/i18n';
-import { DailyPromptStaticScreen } from '@/screens/PromptLandingScreen/PromptLandingScree';
+import HowToScreen from '@/screens/HowToScren/HowToScreen';
 
 
 const Drawer = createDrawerNavigator();
@@ -183,27 +183,38 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   );
 }
 
-const DrawerStackNavigation = () => (
-  // <NavigationContainer>
-  <Drawer.Navigator
-    initialRouteName="Home"
-    drawerContent={(props) => <CustomDrawerContent {...props} />}
-    screenOptions={{
-      header: () => <CustomHeader />
-    }}
-  >
-    <Drawer.Screen
-      name="Home"
-      options={{ title: 'Home' }}
-      children={() => <LoadFeedOrInsertScreen />}
-    />
-    <Drawer.Screen
-      name="Profile"
-      options={{ title: 'Profile' }}
-      children={() => <PlaceholderScreen title="Profile" />}
-    />
-  </Drawer.Navigator>
-  // </NavigationContainer>
-);
+const DrawerStackNavigation = () => {
+  const { t } = useTranslation();
+  return (
+    // <NavigationContainer>
+    <Drawer.Navigator
+      initialRouteName="Home"
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      screenOptions={{
+        header: () => <CustomHeader />
+      }}
+    >
+      <Drawer.Screen
+        name="Home"
+        options={{ title: 'Home' }}
+        children={() => <LoadFeedOrInsertScreen />}
+      />
+      <Drawer.Screen
+        name="Profile"
+        options={{ title: 'Profile' }}
+        children={() => <PlaceholderScreen title="Profile" />}
+      />
+
+      <Drawer.Screen
+        name="howto"
+        options={{ title: t('what_is_this') }}
+        children={() => <HowToScreen />}
+      />
+    </Drawer.Navigator>
+    // </NavigationContainer>
+  );
+}
+
+
 
 export default DrawerStackNavigation;

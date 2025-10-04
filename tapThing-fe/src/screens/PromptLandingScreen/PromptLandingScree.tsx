@@ -1,23 +1,27 @@
-import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
   useTheme,
   Button,
-  Card,
   ProgressBar,
   Divider,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 export const DailyPromptStaticScreen: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
 
+  // --- DATI DI BASE ---
+  const promptTitle = 'Perché sei felice oggi? Dillo con una foto.';
+
+  // --- TIMER/COUNTDOWN ---
   const expiry = useMemo(() => Date.now() + 23 * 60 * 60 * 1000, []);
   const [remaining, setRemaining] = useState<number>(Math.max(0, expiry - Date.now()));
-
   useEffect(() => {
     const id = setInterval(() => setRemaining(Math.max(0, expiry - Date.now())), 1000);
     return () => clearInterval(id);
@@ -37,52 +41,45 @@ export const DailyPromptStaticScreen: React.FC = () => {
   }, [remaining]);
 
   return (
-      <View style={styles.container}>
-        {/* Contenuto centrale */}
-        <View style={styles.centerContent}>
-          <Text
-            variant="headlineSmall"
-            style={[styles.title, { color: theme.colors.onBackground }]}
-          >
-            Stimolo di oggi
-          </Text>
+    <SafeAreaView style={{ flex: 1 }} edges={['left', 'right', 'top']}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* wrapper centrale con larghezza massima per lettura piacevole */}
+          <View style={styles.centerWrap}>
+            <Text
+              variant="titleLarge"
+              style={[styles.prompt, { color: theme.colors.onSurface }]}
+              accessibilityRole="header"
+            >
+              {promptTitle}
+            </Text>
 
-          <Card mode="elevated" style={styles.card}>
-            <Card.Content>
-              <Text
-                variant="titleLarge"
-                style={[styles.prompt, { color: theme.colors.onSurface }]}
-              >
-                Mostra un pezzetto vero
-              </Text>
+            <Divider style={{ marginVertical: 14, opacity: 0.5 }} />
 
-              <Divider style={{ marginVertical: 12, opacity: 0.5 }} />
+            <Button
+              mode="contained"
+              icon="camera"
+              onPress={() => navigation.navigate('InsertPhotoScreen')}
+              style={styles.cta}
+              contentStyle={styles.ctaContent}
+              accessibilityLabel="Scatta o scegli una foto per rispondere allo stimolo"
+            >
+            {t('take_photo')}
+            </Button>
 
-              <Text
-                variant="bodyMedium"
-                style={{
-                  color: theme.colors.onSurfaceVariant,
-                  textAlign: 'center',
-                }}
-              >
-                Se questo stimolo ti ha motivato, pubblica una foto ispirata ad esso — altrimenti
-                passa quando vuoi e torna più tardi o al nuovo stimolo.
-              </Text>
-            </Card.Content>
-
-            <Card.Actions style={{ paddingHorizontal: 12, paddingBottom: 12 }}>
-              <Button
-                mode="contained"
-                icon="camera"
-                onPress={() => navigation.navigate('InsertPhotoScreen')}
-                style={{ flex: 1, borderRadius: 12 }}
-                contentStyle={{ paddingVertical: 8 }}
-              >
-                Scatta o carica
-              </Button>
-            </Card.Actions>
-          </Card>
-        </View>
+            {/* micro–messaggio opzionale, empatico (puoi toglierlo se vuoi ancora più minimal) */}
+            <Text
+              variant="bodySmall"
+              style={[styles.subtleNote, { color: theme.colors.onSurfaceVariant }]}
+            >
+              {t('post_only_if_moved')}
+            </Text>
+          </View>
+        </ScrollView>
 
         {/* Countdown fisso in basso dentro SafeArea */}
         <SafeAreaView
@@ -95,40 +92,33 @@ export const DailyPromptStaticScreen: React.FC = () => {
           <ProgressBar progress={progress} style={styles.progress} />
         </SafeAreaView>
       </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
+  container: { flex: 1, paddingHorizontal: 18, paddingTop: 12 },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',   // vero centraggio verticale
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    justifyContent: 'space-between',
-  },
-  centerContent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 24,
-  },
-  title: {
-    fontWeight: '900',
-    letterSpacing: 0.3,
-    textAlign: 'center',
-  },
-  card: {
+  centerWrap: {
+    alignSelf: 'center',
     width: '100%',
-    borderRadius: 18,
-    paddingTop: 6,
+    maxWidth: 640,              // lettura migliore su tablet / telefoni grandi
+    alignItems: 'center',
   },
   prompt: {
-    fontWeight: '800',
+    fontWeight: '900',
     textAlign: 'center',
+    letterSpacing: 0.2,
+    lineHeight: 30,
   },
+  cta: { borderRadius: 12, alignSelf: 'stretch' },
+  ctaContent: { height: 52 },
+  subtleNote: { textAlign: 'center', marginTop: 10 },
   footer: {
+    marginTop: 'auto',
     paddingTop: 10,
     paddingBottom: 8,
     borderTopWidth: 1,

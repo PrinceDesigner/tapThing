@@ -1,6 +1,6 @@
 // src/screens/AuthStackScreen/LandingScreen.tsx
-import React, { use, useEffect } from 'react';
-import { StyleSheet, View, StatusBar } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, StatusBar, ScrollView } from 'react-native';
 import { Button, IconButton, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextBold, TextRegular } from '@/components/ui/customText';
@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { setAppLanguage } from '@/i18n';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeContext } from '@/context/themeContext';
+import HowItFeels from '@/components/ui/HowFeel';
 
 type Props = { onGetStarted?: () => void };
 
@@ -19,6 +20,10 @@ const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
 
   const isDark = theme.dark;
 
+  const handleGetStarted = () => {
+    if (onGetStarted) return onGetStarted();
+    navigate.navigate('Register');
+  };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
@@ -36,27 +41,33 @@ const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
             size={24}
             onPress={toggleTheme}
             iconColor={theme.colors.onBackground}
+            accessibilityLabel="Cambia tema"
           />
         </View>
 
-        {/* Contenuto centrale */}
-        <View style={styles.centerContent}>
-          <TextBold style={[styles.title, { color: theme.colors.onBackground }]}>
-            {t('brand')}
-          </TextBold>
+        {/* Corpo scrollabile: hero + sezione emozionale */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Hero */}
+          <View style={styles.centerContent}>
+            <TextBold style={[styles.title, { color: theme.colors.onBackground }]}>
+              {t('brand')}
+            </TextBold>
+            <Button
+              mode="contained"
+              onPress={handleGetStarted}
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+            >
+              {t('get_started')}
+            </Button>
+          </View>
 
-          <TextRegular style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
-            {t('subtitle')}
-          </TextRegular>
-          <Button
-            mode="contained"
-            onPress={() => navigate.navigate('Register')}
-            style={styles.button}
-            contentStyle={styles.buttonContent}
-          >
-            {t('get_started')}
-          </Button>
-        </View>
+          {/* Sezione emozionale (senza i18n) */}
+          <HowItFeels />
+        </ScrollView>
 
         {/* Footer lingua */}
         <View style={styles.footer}>
@@ -76,7 +87,6 @@ const TapThingLandingScreen: React.FC<Props> = ({ onGetStarted }) => {
           >
             Italiano
           </Button>
-
         </View>
       </View>
     </SafeAreaView>
@@ -93,17 +103,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
   },
-  header: {
-    alignItems: 'flex-end',
-    // position: 'absolute'
+  header: { alignItems: 'flex-end' },
+  scrollContent: {
+    paddingBottom: 16,
   },
   centerContent: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 32,
+    marginBottom: 8,
   },
-  title: { fontSize: 44, marginBottom: 8 },
-  subtitle: { fontSize: 16, marginBottom: 32, textAlign: 'center' },
+  title: { fontSize: 44, marginBottom: 8, textAlign: 'center' },
+  subtitle: { fontSize: 16, marginBottom: 24, textAlign: 'center' },
   button: { borderRadius: 12, alignSelf: 'stretch' },
   buttonContent: { height: 52 },
   footer: {

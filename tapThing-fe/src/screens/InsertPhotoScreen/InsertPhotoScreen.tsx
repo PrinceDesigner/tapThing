@@ -13,6 +13,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from "react-native"
 import { useImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import HowWork from "@/components/ui/HowWork";
 
 
 /**
@@ -171,9 +172,6 @@ export const InsertPhotoScreen: React.FC = () => {
                         <Button mode="contained" onPress={onTakePhoto} icon="camera" style={{ flex: 1 }}>
                             {t("take_photo")}
                         </Button>
-                        <Button mode="outlined" onPress={onPickImage} icon="image" style={{ flex: 1 }} >
-                            {t("select_image")}
-                        </Button>
                     </View>
                 </Card>
 
@@ -185,28 +183,8 @@ export const InsertPhotoScreen: React.FC = () => {
                 </View>
 
                 {/* Spiegazione breve del concept */}
-                <View style={{ marginHorizontal: 16, marginTop: 18 }}>
-                    <Text variant="titleMedium" style={{ color: theme.colors.onSurface, fontWeight: "700" }}>
-                        {t("how_it_works")}
-                    </Text>
-                    <List.Section>
-                        <List.Item
-                            title={t("one_prompt_per_day")}
-                            description={t("daily_prompt_description")}
-                            left={(p) => <List.Icon {...p} icon="calendar-today" />}
-                        />
-                        <List.Item
-                            title={t("post_to_unlock_feed")}
-                            description={t("post_to_unlock_feed_description")}
-                            left={(p) => <List.Icon {...p} icon="lock-open-variant" />}
-                        />
-                        <List.Item
-                            title={t("no_filters_more_authenticity")}
-                            description={t("no_filters_more_authenticity_description")}
-                            left={(p) => <List.Icon {...p} icon="image-outline" />}
-                        />
-                    </List.Section>
-                </View>
+                <HowWork />
+
             </ScrollView>
         </View>
     );
