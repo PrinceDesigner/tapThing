@@ -1,11 +1,14 @@
+// index.ts / main entry del progetto
+
+if (__DEV__) {
+  // side-effect import: configura Reactotron e setta console.tron
+  require('./src/config/zudstandReactotron');
+}
+
 import App from '@/App';
 import './gesture-handler';
 
-import '@expo/metro-runtime'; // Necessary for Fast Refresh on Web
+import '@expo/metro-runtime';
 import { registerRootComponent } from 'expo';
 
-
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go or in a native build,
-// the environment is set up appropriately
 registerRootComponent(App);

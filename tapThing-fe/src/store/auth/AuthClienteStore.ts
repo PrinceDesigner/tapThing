@@ -16,12 +16,12 @@ export const useAuthClienteStore = create<AuthState>()(
     zustandReactotron(
       (
         set: (partial: Partial<AuthState> | ((state: AuthState) => Partial<AuthState>),
-        replace?: boolean, action?: string) => void,
+          replace?: boolean, action?: string) => void,
         get: () => AuthState) => ({
           token: null,
           isAuthenticated: false,
-          setToken: (token: string | null) => set({token, isAuthenticated: !!token}, false, 'setToken'),
-          logout: () =>set({ isAuthenticated: false }, false, 'logout'),
+          setToken: (token: string | null) => set({ token, isAuthenticated: !!token }, false, 'setToken'),
+          logout: () => set({ token: null, isAuthenticated: false }, false, 'logout'),
 
         })
     ),

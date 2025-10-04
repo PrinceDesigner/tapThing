@@ -98,8 +98,6 @@ function AppContent() {
 
 export default function App() {
 
-  if (__DEV__) { import('./config/reactotron').then(() => console.log('Reactotron Configurato')); }
-
 
   return (
     <ThemeProvider>

@@ -127,7 +127,7 @@ const PhoneAuthScreen: React.FC = () => {
                   const cc = `${country?.idd?.root ?? '+'}${country?.idd?.suffixes?.[0] ?? ''}`.trim();
                   setCountryCode(cc || '+');
                 }}
-                placeholder={t('phone_placeholder') || 'Inserisci il tuo numero'}
+                placeholder={'Es. +39 333 1234567'}
               />
 
               {/* Errore inline (UX) */}

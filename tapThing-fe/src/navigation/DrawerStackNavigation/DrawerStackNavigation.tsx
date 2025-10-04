@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
 import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import { logout } from '@/api/supabase/supabase.api';
+import { useAuthClienteStore } from '@/store/auth/AuthClienteStore';
 
 const Drawer = createDrawerNavigator();
 
@@ -22,8 +23,6 @@ const PlaceholderScreen = ({ title }: { title: string }) => (
     <Text>{title} Placeholder</Text>
   </View>
 );
-
-
 
 const CustomHeader: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<any>>();

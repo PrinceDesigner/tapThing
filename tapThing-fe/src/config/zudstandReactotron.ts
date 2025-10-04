@@ -9,10 +9,18 @@ declare global {
 
 if (__DEV__) {
   Reactotron
-    .configure({ name: 'dree-client' }) // opzionale: { host: 'IP_DEL_TUO_PC' }
+    // SCEGLI l'host giusto:
+    // - iOS Simulator: puoi ometterlo
+    // - Android Emulator: host: '10.0.2.2'
+    // - Device reale (Expo Go): host: '192.168.x.x' (IP del tuo PC)
+    .configure({ name: 'tapThing', /* host: '10.0.2.2' */ })
     .useReactNative()
     .connect();
 
-  console.tron = Reactotron; // così puoi loggare con console.tron.log()
+  // 👇 IMPORTANTE: assegna prima di usare console.tron
+  (console as any).tron = Reactotron;
+
+  // Smoke test: uno subito...
+  Reactotron.log?.('🔌 Reactotron ready');
 
 }
