@@ -1,0 +1,9 @@
+{
+    "INTERNAL": "Errore interno del server.",
+    "USER_NOT_FOUND": "Utente non trovato.",
+    "USER_ERROR_FETCH": "Errore durante il recupero dei dati dell'utente.",
+    "AUTH_MISSING_HEADER": "Header Authorization mancante o non valido.",
+    "AUTH_INVALID_OR_EXPIRED": "Token non valido o scaduto.",
+    "USER_ERROR_UPDATE": "Errore durante l'aggiornamento dei dati dell'utente.",
+    "USERNAME_ALREADY_TAKEN": "Lo username è già in uso."
+}

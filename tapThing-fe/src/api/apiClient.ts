@@ -20,7 +20,7 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
     throw new Error('Access token mancante. Effettua di nuovo l’accesso.');
   }
 
-  const baseUrl = process.env.EXPO_PUBLIC_BFF_URL || 'http://localhost:3000';
+  const baseUrl = process.env.EXPO_PUBLIC_BFF_URL || 'http://localhost:3000/';
 
   // ✅ Genera un traceId unico per la richiesta
   const traceId = uuidv4();
@@ -40,9 +40,9 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
     ...(body ? { body: JSON.stringify(body) } : {}),
   };
 
+
   try {
     const response = await fetch(`${baseUrl}${url}`, options);
-
     if (!response.ok) {
       let errorMessage = `Errore API: ${response.status}`;
 
@@ -66,7 +66,6 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
 
         // Override solo se `msg` esiste
         if (msg) {
-            console.log('Errore API dettagliato:', msg);
           switch (response.status) {
             case 400:
               errorMessage = msg || 'Richiesta non valida';
@@ -96,10 +95,10 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
       throw new Error(errorMessage);
     }
 
-    // const contentLength = response.headers.get('content-length');
-    // if (!contentLength || Number(contentLength) === 0) {
-    //   return null as unknown as T;
-    // }
+    const contentLength = response.headers.get('content-length');
+    if (!contentLength || Number(contentLength) === 0) {
+      return null as unknown as T;
+    }
 
     console.log('✅ Risposta API:', response.status, url, {
       method,
@@ -113,6 +112,7 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
       return null as unknown as T;
     }
   } catch (err: any) {
+
     if (err.message?.includes('Network request failed')) {
       throw new Error('Connessione assente. Riprova più tardi.');
     }

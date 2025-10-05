@@ -64,5 +64,6 @@
   "edit_profile_button": "Modifica profilo",
   "first_name": "Nome",
   "last_name": "Cognome",
-  "back": "Indietro"
+  "back": "Indietro",
+  "profile_updated_successfully": "Profilo aggiornato con successo"
 }

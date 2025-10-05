@@ -1,0 +1,10 @@
+{
+    "REQUIRED": "The field \"{property}\" is required.",
+    "EMAIL": "The field \"{property}\" must be a valid email.",
+    "MAX_LENGTH": "The field \"{property}\" must be at most {max} characters long.",
+    "IS_STRING": "The field \"{property}\" must be a string.",
+    "IS_URL": "The field \"{property}\" must be a valid URL.",
+    "USERNAME_INVALID_CHARACTERS": "The username can only contain letters, numbers, underscores, and periods. It cannot be empty",
+    "USERNAME_INVALID_CHARACTERS_CREDENTIALS": "The name and surname can only contain letters"
+
+}

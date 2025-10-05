@@ -1,3 +1,4 @@
+import { useUserStore } from '@/store/user/user.store';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +7,7 @@ import { Text, Button } from 'react-native-paper';
 
 const ProfiloScreen = () => {
   const { t } = useTranslation();
+  const profile = useUserStore((s) => s.profile);
   const nav = useNavigation<any>();
 
   const handleEditProfile = () => {
@@ -19,11 +21,11 @@ const ProfiloScreen = () => {
         style={styles.avatar}
       />
 
-      <Text style={styles.name}>Michele Rossi</Text>
-      <Text style={styles.username}>@michelerossi</Text>
+        <Text style={styles.name}>{profile?.nome} {profile?.cognome}</Text>
+      <Text style={styles.username}>@{profile?.username}</Text>
 
       <Text style={styles.bio}>
-        Appassionato di fotografia, tecnologia e viaggi. Amo catturare momenti autentici e condividere storie vere.
+        {profile?.bio}
       </Text>
 
       <Button
