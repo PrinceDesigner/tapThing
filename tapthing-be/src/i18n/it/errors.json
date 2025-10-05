@@ -5,5 +5,7 @@
     "AUTH_MISSING_HEADER": "Header Authorization mancante o non valido.",
     "AUTH_INVALID_OR_EXPIRED": "Token non valido o scaduto.",
     "USER_ERROR_UPDATE": "Errore durante l'aggiornamento dei dati dell'utente.",
-    "USERNAME_ALREADY_TAKEN": "Lo username è già in uso."
+    "USERNAME_ALREADY_TAKEN": "Lo username è già in uso.",
+    "PROMPT_ERROR_FETCH": "Errore durante il recupero dei prompt.",
+    "POST_CREATE_ERROR": "Errore durante la creazione del post."
 }

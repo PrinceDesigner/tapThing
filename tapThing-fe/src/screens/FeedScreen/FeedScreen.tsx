@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    aspectRatio: IMAGE_RATIO,
+    aspectRatio: 4/5,
     backgroundColor: '#eee',
   },
   content: {

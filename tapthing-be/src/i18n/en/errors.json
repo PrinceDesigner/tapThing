@@ -1,10 +1,11 @@
 {
-  "INTERNAL": "Internal server error.",
-  "USER_NOT_FOUND": "User not found.",
-  "USER_ERROR_FETCH": "Error fetching user data.",
-  "AUTH_MISSING_HEADER": "Missing or invalid Authorization header.",
-  "AUTH_INVALID_OR_EXPIRED": "Invalid or expired token.",
-  "USER_ERROR_UPDATE": "Error updating user data.",
-  "USERNAME_ALREADY_TAKEN": "The username is already taken."
-
+    "INTERNAL": "Internal server error.",
+    "USER_NOT_FOUND": "User not found.",
+    "USER_ERROR_FETCH": "Error fetching user data.",
+    "AUTH_MISSING_HEADER": "Missing or invalid Authorization header.",
+    "AUTH_INVALID_OR_EXPIRED": "Invalid or expired token.",
+    "USER_ERROR_UPDATE": "Error updating user data.",
+    "USERNAME_ALREADY_TAKEN": "The username is already taken.",
+    "PROMPT_ERROR_FETCH": "Error fetching prompts.",
+    "POST_CREATE_ERROR": "Error creating the post."
 }

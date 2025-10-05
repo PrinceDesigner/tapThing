@@ -19,6 +19,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         let status = HttpStatus.INTERNAL_SERVER_ERROR;
         let code = 'INTERNAL_SERVER_ERROR';
         let message = this.i18n.t('errors.INTERNAL');
+        let error = null;
 
         if (exception instanceof HttpException) {
             status = exception.getStatus();
@@ -28,6 +29,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             } else {
                 code = payload?.code || code;
                 message = payload?.message || message;
+                error = payload?.error || null;
             }
 
         }
@@ -36,6 +38,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             statusCode: status,
             code,
             message,
+            error,
             traceId: (req as any).traceId,
             timestamp: new Date().toISOString(),
             path: (req as any).url,

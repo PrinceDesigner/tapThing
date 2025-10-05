@@ -10,21 +10,37 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { usePromptStore } from '@/store/prompt/prompt.store';
 
 export const DailyPromptStaticScreen: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation<any>();
+  const { prompt, setHasPostedOnPrompt } = usePromptStore();
   const { t } = useTranslation();
 
-  // --- DATI DI BASE ---
-  const promptTitle = 'Perché sei felice oggi? Dillo con una foto.';
+  const promptTitle = prompt?.title || '';
+  // --- TIMER/COUNTDOWN ---
+  // 1) prendi l'ISO di fine dal backend
+  const ENDS_ISO = prompt?.ends_at || new Date().toISOString(); // es.
+
+  // (opzionale, vedi nota sotto) normalizza l'ISO a millisecondi
+  // Non serve un memo: la funzione è pura, leggera e non dipende da variabili di stato.
+  const toMillisISO = (iso: string) =>
+    iso.replace(/(\.\d{3})\d+(?=[Z+\-])/, "$1"); // lascia max 3 decimali
+
+  // 2) calcola l'epoch di scadenza UNA VOLTA
+  const expiry = useMemo(() => {
+    // Per i conti: usa direttamente UTC epoch
+    return new Date(toMillisISO(ENDS_ISO)).getTime();
+  }, [ENDS_ISO]);
 
   // --- TIMER/COUNTDOWN ---
-  const expiry = useMemo(() => Date.now() + 23 * 60 * 60 * 1000, []);
-  const [remaining, setRemaining] = useState<number>(Math.max(0, expiry - Date.now()));
-  
+  const [remaining, setRemaining] = useState<number>(() => Math.max(0, expiry - Date.now()));
+
   useEffect(() => {
-    const id = setInterval(() => setRemaining(Math.max(0, expiry - Date.now())), 1000);
+    const tick = () => setRemaining(Math.max(0, expiry - Date.now()));
+    const id = setInterval(tick, 1000);
+    tick(); // sync immediata
     return () => clearInterval(id);
   }, [expiry]);
 
@@ -36,10 +52,18 @@ export const DailyPromptStaticScreen: React.FC = () => {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
   };
 
+  // Se il "totale" è sempre 23h, OK così.
+  // Se vuoi un progresso preciso senza assumere 23h,
+  // passa anche startISO dal backend e calcola total = end - start.
   const progress = useMemo(() => {
     const total = 23 * 60 * 60 * 1000;
     return Math.max(0, Math.min(1, (total - remaining) / total));
   }, [remaining]);
+
+  const isExpired = remaining === 0;
+
+
+
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['left', 'right', 'top']}>
@@ -69,7 +93,7 @@ export const DailyPromptStaticScreen: React.FC = () => {
               contentStyle={styles.ctaContent}
               accessibilityLabel="Scatta o scegli una foto per rispondere allo stimolo"
             >
-            {t('take_photo')}
+              {t('take_photo')}
             </Button>
 
             {/* micro–messaggio opzionale, empatico (puoi toglierlo se vuoi ancora più minimal) */}

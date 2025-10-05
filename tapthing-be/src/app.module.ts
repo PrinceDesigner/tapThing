@@ -14,6 +14,8 @@ import { HealthModule } from './health/health.module';
 import { TraceIdMiddleware } from './common/middleware/trace-id.middleware';
 import { UsersModule } from './users/users.module';
 import { SupabaseModule } from './supabase/supabase.module';
+import { PromptModule } from './prompt/prompt.module';
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { SupabaseModule } from './supabase/supabase.module';
     UsersModule,
     // SupabaseModule
     SupabaseModule,
+    PromptModule,
+    PostsModule,
 
   ],
 })

@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 import { UsersDbService } from './users-db.service';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './model/user.model';
 
 @Injectable()

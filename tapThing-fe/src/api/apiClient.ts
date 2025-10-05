@@ -100,12 +100,6 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
       return null as unknown as T;
     }
 
-    console.log('✅ Risposta API:', response.status, url, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-      traceId, // ✅ Log del traceId
-    });
     try {
       return await response.json();
     } catch {

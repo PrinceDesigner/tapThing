@@ -13,6 +13,12 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from "react-native"
 import HowWork from "@/components/ui/HowWork";
+import { usePromptStore } from "@/store/prompt/prompt.store";
+import { uploadImageAndGetUrl } from "@/api/supabase/uploadphoto";
+import { useAuthClienteStore } from "@/store/auth/AuthClienteStore";
+import { useLoadingStore } from "@/store/loaderStore/loaderGlobalStore";
+import { insertPost } from "@/api/posts/post.service";
+import { useSnackbarStore } from "@/store/snackbar/snackbar.store";
 
 
 /**
@@ -29,6 +35,16 @@ export const InsertPhotoScreen: React.FC = () => {
     const { t } = useTranslation();
     const [asset, setAsset] = useState<null | { uri: string; width?: number; height?: number }>(null);
 
+    const { show } = useSnackbarStore();
+
+    const prompt = usePromptStore((state) => state.prompt);
+    const sethasPostedOnPrompt = usePromptStore((state) => state.setHasPostedOnPrompt);
+    const setPostedIdOnPrompt = usePromptStore((state) => state.setPostedIdOnPrompt);
+    const setPostedAtOnPrompt = usePromptStore((state) => state.setPostedAtOnPrompt);
+    const userId = useAuthClienteStore((s) => s.userId); // { id: string } 
+    const setLoading = useLoadingStore((s) => s.setLoading);
+
+
     const requestPermissions = async () => {
         // Galleria
         const lib = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -37,23 +53,6 @@ export const InsertPhotoScreen: React.FC = () => {
         return lib.status === "granted" && cam.status === "granted";
     };
 
-    const onPickImage = async () => {
-        const ok = await requestPermissions();
-        if (!ok) return; // gestisci UI errore/alert
-
-        const res = await ImagePicker.launchImageLibraryAsync({
-            quality: 0.9,
-            allowsMultipleSelection: false,
-            mediaTypes: ['images']
-        });
-
-        if (!res.canceled) {
-            const img = res.assets[0];
-            console.log('width', img.width, 'height', img.height);
-
-            setAsset({ uri: img.uri, width: img.width, height: img.height });
-        }
-    };
 
     const onTakePhoto = async () => {
         const ok = await requestPermissions();
@@ -62,13 +61,51 @@ export const InsertPhotoScreen: React.FC = () => {
         const res = await ImagePicker.launchCameraAsync({
             allowsMultipleSelection: false,
             quality: 0.9,
+            aspect: [4, 5],
             mediaTypes: ['images']
         });
 
         if (!res.canceled) {
             const img = res.assets[0];
-            console.log('width', img.width, 'height', img.height);
             setAsset({ uri: img.uri, width: img.width, height: img.height });
+        }
+    };
+
+
+    const onPublish = async () => {
+        if (!asset?.uri) return;
+        if (!userId) {
+            // mostra errore UI se serve
+            return;
+        }
+        setLoading(true);
+        try {
+            // cartella logica: userId/promptId (così è facile trovare i file)
+            const folder = `${userId}/${prompt?.prompt_id ?? "no-prompt"}`;
+
+            // scegli se vuoi public o signed URL
+            const { url, path } = await uploadImageAndGetUrl(asset.uri, {
+                bucket: "images",
+                folder,
+                makePublic: false,         // true se il bucket è pubblico e vuoi URL permanente
+            });
+
+            const post = await insertPost(url, prompt?.prompt_id ?? "");
+
+            const postId = post.id;
+            const postCreatedAt = post.created_at;
+
+            // Aggiorna lo stato globale dello stimolo
+            sethasPostedOnPrompt(true);
+            setPostedIdOnPrompt(postId);
+            setPostedAtOnPrompt(postCreatedAt);
+
+        } catch (e: any) {
+            // showToast(e.message ?? "Errore upload");
+            show('Errore nel caricamento', 'error');
+            // show(e.message || t("error_generic"), type: "error" });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -95,7 +132,7 @@ export const InsertPhotoScreen: React.FC = () => {
                             style={{ color: theme.colors.onPrimary, fontWeight: "900", letterSpacing: 0.2, textAlign: "center" }}
                             numberOfLines={5}
                         >
-                            Mostra un pezzetto vero della tua giornata
+                            {prompt?.title || ''}
                         </Text>
                     </View>
 
@@ -176,7 +213,7 @@ export const InsertPhotoScreen: React.FC = () => {
 
                 {/* Azione finale (sempre visiva) */}
                 <View style={{ marginHorizontal: 16, marginTop: 8 }}>
-                    <Button mode="contained-tonal" icon={"send"}>
+                    <Button mode="contained-tonal" onPress={onPublish} icon={"send"}>
                         {t("publish_now")}
                     </Button>
                 </View>
