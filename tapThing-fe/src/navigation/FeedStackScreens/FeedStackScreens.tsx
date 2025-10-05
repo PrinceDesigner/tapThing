@@ -9,8 +9,6 @@ import { DailyPromptStaticScreen } from '@/screens/PromptLandingScreen/PromptLan
 
 export type FeedAuthParamList = {
     FeedScreen: undefined;
-    DailyPromptStaticScreen: undefined;
-
 };
 
 const Stack = createNativeStackNavigator<FeedAuthParamList>();
@@ -18,7 +16,7 @@ const Stack = createNativeStackNavigator<FeedAuthParamList>();
 const FeedStackScreensNavigation: React.FC = () => {
     const { t } = useTranslation();
     return (
-        <Stack.Navigator initialRouteName="DailyPromptStaticScreen" screenOptions={{ headerShown: true }}>
+        <Stack.Navigator initialRouteName="FeedScreen" screenOptions={{ headerShown: true }}>
             <Stack.Screen name="FeedScreen"
                 component={FeedScreen}
                 options={{ headerShown: false }}

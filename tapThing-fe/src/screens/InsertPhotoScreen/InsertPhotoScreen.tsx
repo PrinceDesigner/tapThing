@@ -145,7 +145,7 @@ export const InsertPhotoScreen: React.FC = () => {
                     ) : (
                         // ...il tuo box “dashed” con l’icona Plus
 
-                        <TouchableOpacity onPress={() => { console.log("Carica o fai foto") }} accessibilityRole="button" accessibilityLabel="Carica o fai foto">
+                        <TouchableOpacity onPress={onTakePhoto} accessibilityRole="button" accessibilityLabel="Carica o fai foto">
                             <View
                                 style={{
                                     borderWidth: 2,

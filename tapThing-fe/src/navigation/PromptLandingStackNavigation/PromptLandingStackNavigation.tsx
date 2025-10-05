@@ -19,13 +19,18 @@ const PromptLandingStackNavigation: React.FC = () => {
     const { t } = useTranslation();
     return (
         <Stack.Navigator initialRouteName="DailyPromptStaticScreen" screenOptions={{ headerShown: true }}>
-            <Stack.Screen name="DailyPromptStaticScreen"
-                component={DailyPromptStaticScreen}
-                options={{ headerShown: false }}
+            <Stack.Screen
+            name="DailyPromptStaticScreen"
+            component={DailyPromptStaticScreen}
+            options={{ headerShown: false }}
             />
-            <Stack.Screen name="InsertPhotoScreen"
-                component={InsertPhotoScreen}
-                options={{ title: t('insert_photo')}}
+            <Stack.Screen
+            name="InsertPhotoScreen"
+            component={InsertPhotoScreen}
+            options={{
+                title: t('insert_photo'),
+                headerBackTitle: t('back'), // Cambia il titolo del pulsante indietro
+            }}
             />
         </Stack.Navigator>
     );

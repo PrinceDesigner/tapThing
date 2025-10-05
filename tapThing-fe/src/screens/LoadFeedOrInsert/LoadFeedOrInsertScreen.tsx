@@ -7,7 +7,7 @@ import PromptLandingStackNavigation from '@/navigation/PromptLandingStackNavigat
 const LoadFeedOrInsertScreen: React.FC = () => {
     const prompt = false
 
-    return prompt ? <FeedStackScreensNavigation /> : <PromptLandingStackNavigation />;
+    return !prompt ? <FeedStackScreensNavigation /> : <PromptLandingStackNavigation />;
 };
 
 const styles = StyleSheet.create({
