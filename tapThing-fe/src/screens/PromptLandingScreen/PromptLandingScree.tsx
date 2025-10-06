@@ -10,12 +10,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { usePromptStore } from '@/store/prompt/prompt.store';
+import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
 
 export const DailyPromptStaticScreen: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation<any>();
-  const { prompt, setHasPostedOnPrompt } = usePromptStore();
+  // --- PROMPT ---
+  const { prompt } = useActivePrompt();
+  
   const { t } = useTranslation();
 
   const promptTitle = prompt?.title || '';

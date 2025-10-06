@@ -7,5 +7,6 @@
     "USER_ERROR_UPDATE": "Error updating user data.",
     "USERNAME_ALREADY_TAKEN": "The username is already taken.",
     "PROMPT_ERROR_FETCH": "Error fetching prompts.",
-    "POST_CREATE_ERROR": "Error creating the post."
+    "POST_CREATE_ERROR": "Error creating the post.",
+    "POSTS_FETCH_ERROR": "Error fetching posts."
 }

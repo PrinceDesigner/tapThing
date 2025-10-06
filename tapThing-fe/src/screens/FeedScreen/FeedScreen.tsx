@@ -1,81 +1,82 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { Card, ToggleButton, Avatar, useTheme, Text, Icon } from 'react-native-paper';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { View, StyleSheet, Image, TouchableOpacity, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { Card, ToggleButton, Avatar, useTheme, Text, Icon, ActivityIndicator, Button, FAB } from 'react-native-paper';
 import ImageViewing from 'react-native-image-viewing';
 import { FlashList } from '@shopify/flash-list';
+import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
+import { PostDetail, Reactions } from '@/api/posts/model/post.model';
+import { usePostInfinite } from '@/hook/post/postQuery/postQuery';
+import { useTranslation } from 'react-i18next';
+import * as Location from 'expo-location';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 
-type Post = {
-  id: string;
-  username: string;
-  avatar: string;
-  image: string;
-  location: string;
+
+
+
+// ======== Mappa helper ========
+type Shortcode = 'cuore' | 'pollice_su' | 'pollice_giu';
+type CountsMap = Record<Shortcode, number>;
+
+const toCountsMap = (r: Reactions): CountsMap => {
+  const base: CountsMap = { cuore: 0, pollice_su: 0, pollice_giu: 0 };
+  r.byEmoji.forEach(b => {
+    base[b.shortcode] = b.count ?? 0;
+  });
+  return base;
 };
 
-type ReactionKey = 'heart' | 'up' | 'down';
-type ReactionCounts = Record<ReactionKey, number>;
-
-const MOCK_POSTS: Post[] = [
-  {
-    id: '1',
-    username: 'michelerossi',
-    avatar: 'https://i.pravatar.cc/100?img=12',
-    image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1400&auto=format&fit=crop',
-    location: 'Roma, Italia',
-  },
-  {
-    id: '2',
-    username: 'giulia.b',
-    avatar: 'https://i.pravatar.cc/100?img=32',
-    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1400&auto=format&fit=crop',
-    location: 'Sardegna, Italia',
-  },
-  {
-    id: '3',
-    username: 'andrea_dev',
-    avatar: 'https://i.pravatar.cc/100?img=5',
-    image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1400&auto=format&fit=crop',
-    location: 'Dolomiti, Italia',
-  },
-];
-
-const INITIAL_COUNTS: Record<string, ReactionCounts> = {
-  '1': { heart: 12, up: 5, down: 1 },
-  '2': { heart: 3, up: 9, down: 0 },
-  '3': { heart: 0, up: 2, down: 1 },
-};
-
-const IMAGE_RATIO = 1.2;
-
-/**
- * Stima dell'altezza item:
- * - Card.Title ~ 56
- * - Image: dipende dalla larghezza schermo; come stima usiamo 320px / ratio 1.2 ≈ 266
- * - Content (location + stats) ~ 64
- * - Margini/padding vari ~ 24
- */
-const ESTIMATED_ITEM_SIZE = 56 + 266 + 64 + 24; // ~410
-
+// ======== UI Component ========
 const FeedScreen: React.FC = () => {
   const theme = useTheme();
+  const { prompt } = useActivePrompt();
+  const { t } = useTranslation();
 
-  const [reactions, setReactions] = useState<Record<string, ReactionKey | null>>({});
-  const [reactionCounts, setReactionCounts] = useState<Record<string, ReactionCounts>>(INITIAL_COUNTS);
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    isFetchingNextPage,
+    hasNextPage,
+    refetch,
+    isRefetching,
+  } = usePostInfinite(prompt?.prompt_id, { pageSize: 10 });
 
+
+  const MOCK_POST_DETAILS = data?.pages.flatMap((p) => p.posts) ?? [];
+
+  // stato: reazione selezionata per post
+  const [selectedReaction, setSelectedReaction] = useState<Record<string, Shortcode | null>>({});
+
+  // stato: conteggi per post (shortcode -> count)
+  const [countsByPost, setCountsByPost] = useState<Record<string, CountsMap>>(
+    () =>
+      Object.fromEntries(
+        MOCK_POST_DETAILS.map(pd => [pd.post.id, toCountsMap(pd.reactions)])
+      )
+  );
+
+  // image viewer
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
 
-  const imagesForViewer = useMemo(() => MOCK_POSTS.map(p => ({ uri: p.image })), []);
 
-  const handleChangeReaction = useCallback((postId: string, nextRaw: string | null) => {
-    setReactions(prev => {
+  const imagesForViewer = useMemo(
+    () => MOCK_POST_DETAILS.map(pd => ({ uri: pd.post.storage_path })),
+    []
+  );
+
+
+  const handleChangeReaction = useCallback((postId: string, nextRaw: Shortcode | null) => {
+    setSelectedReaction(prev => {
       const prevReaction = prev[postId] ?? null;
       const toggledOff = prevReaction !== null && prevReaction === nextRaw;
-      const next = toggledOff ? null : (nextRaw as ReactionKey | null);
+      const next = toggledOff ? null : (nextRaw as Shortcode | null);
 
-      setReactionCounts(rc => {
-        const current = rc[postId] ?? { heart: 0, up: 0, down: 0 };
-        const updated: ReactionCounts = { ...current };
+      setCountsByPost(rc => {
+        const current = rc[postId] ?? { cuore: 0, pollice_su: 0, pollice_giu: 0 };
+        const updated: CountsMap = { ...current };
 
         if (prevReaction) {
           updated[prevReaction] = Math.max(0, updated[prevReaction] - 1);
@@ -95,74 +96,103 @@ const FeedScreen: React.FC = () => {
     setViewerVisible(true);
   }, []);
 
-  const keyExtractor = useCallback((item: Post) => item.id, []);
+  const keyExtractor = useCallback((item: PostDetail) => item.post.id, []);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: Post; index: number }) => {
-      const selected = reactions[item.id] ?? '';
-      const counts = reactionCounts[item.id] ?? { heart: 0, up: 0, down: 0 };
+    ({ item, index }: { item: PostDetail; index: number }) => {
+      const postId = item.post.id;
+      const selected = selectedReaction[postId] ?? null;
+      const counts = countsByPost[postId] ?? { cuore: 0, pollice_su: 0, pollice_giu: 0 };
+
+      // preferisci la località del post
+      const location = item.post.city && item.post.country
+        ? `${item.post.city}, ${item.post.country}`
+        : t('unknown_location');
 
       return (
         <Card style={styles.card}>
           <Card.Title
-            title={`@${item.username}`}
+            title={
+              <View style={styles.locationRow}>
+                <Text variant="labelLarge">{`@${item.author.username}`}</Text>
+                <Text variant="labelSmall" style={styles.locationText}>{location}</Text>
+              </View>
+            }
             titleVariant="titleMedium"
-            left={(props) => <Avatar.Image {...props} size={40} source={{ uri: item.avatar }} />}
+            left={(props) => <Avatar.Image {...props} size={40} source={{ uri: item.author.avatar_url }} />}
           />
 
           <TouchableOpacity activeOpacity={0.8} onPress={() => openViewerAt(index)}>
-            <Image source={{ uri: item.image }} style={styles.image} />
+            <Image source={{ uri: item.post.storage_path }} style={styles.image} />
           </TouchableOpacity>
 
           <View style={styles.content}>
-            <View style={styles.locationRow}>
-              <Icon source="map-marker" size={18} color={theme.colors.primary} />
-              <Text variant="labelLarge" style={styles.locationText}>{item.location}</Text>
-            </View>
 
             <View style={styles.statsRow}>
+              {/* Cuore */}
               <View style={styles.stat}>
                 <ToggleButton
                   icon="heart"
-                  iconColor={selected === 'heart' ? 'red' : undefined}
-                  value="heart"
-                  onPress={() => handleChangeReaction(item.id, 'heart')}
+                  value="cuore"
+                  iconColor={selected === 'cuore' ? 'red' : undefined}
+                  onPress={() => handleChangeReaction(postId, 'cuore')}
                   style={styles.iconBtn}
                   rippleColor="transparent"
                 />
-                <Text style={styles.statText}>{counts.heart}</Text>
+                <Text style={styles.statText}>{counts.cuore}</Text>
               </View>
 
+              {/* Pollice su */}
               <View style={styles.stat}>
                 <ToggleButton
                   icon="thumb-up"
-                  value="up"
-                  iconColor={selected === 'up' ? 'rgb(41, 41, 226)' : undefined}
-                  onPress={() => handleChangeReaction(item.id, 'up')}
+                  value="pollice_su"
+                  iconColor={selected === 'pollice_su' ? 'rgb(41, 41, 226)' : undefined}
+                  onPress={() => handleChangeReaction(postId, 'pollice_su')}
                   style={styles.iconBtn}
                   rippleColor="transparent"
                 />
-                <Text style={styles.statText}>{counts.up}</Text>
+                <Text style={styles.statText}>{counts.pollice_su}</Text>
               </View>
 
+              {/* Pollice giù */}
               <View style={styles.stat}>
                 <ToggleButton
                   icon="thumb-down"
-                  iconColor={selected === 'down' ? 'rgba(102, 42, 42, 0.986)' : undefined}
-                  value="down"
-                  onPress={() => handleChangeReaction(item.id, 'down')}
+                  value="pollice_giu"
+                  iconColor={selected === 'pollice_giu' ? 'rgba(102, 42, 42, 0.986)' : undefined}
+                  onPress={() => handleChangeReaction(postId, 'pollice_giu')}
                   style={styles.iconBtn}
                   rippleColor="transparent"
                 />
-                <Text style={styles.statText}>{counts.down}</Text>
+                <Text style={styles.statText}>{counts.pollice_giu}</Text>
               </View>
             </View>
           </View>
         </Card>
       );
     },
-    [handleChangeReaction, openViewerAt, reactionCounts, reactions, theme.colors.primary]
+    [handleChangeReaction, openViewerAt, countsByPost, selectedReaction, theme.colors.primary]
   );
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
+        <Text style={{ textAlign: 'center' }}>{t('post_loading_error')}</Text>
+        <Button mode="contained" onPress={() => refetch()} style={{ marginTop: 16 }}>
+          {t('retry')}
+        </Button>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -178,16 +208,23 @@ const FeedScreen: React.FC = () => {
           variant="titleMedium"
           style={{ letterSpacing: 0.2, color: theme.colors.onSurface, fontWeight: '700', textAlign: 'center' }}
         >
-          Racconta un momento speciale della tua giornata!
+          {prompt?.title}
         </Text>
       </View>
 
       <FlashList
-        data={MOCK_POSTS}
+        onRefresh={refetch}
+        data={MOCK_POST_DETAILS}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        onEndReached={() => {
+          if (hasNextPage) fetchNextPage();
+        }}
+        onEndReachedThreshold={0.5}
+        scrollEventThrottle={16}
+
       />
 
       <ImageViewing
@@ -213,18 +250,18 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    aspectRatio: 4/5,
+    aspectRatio: 4 / 5,
     backgroundColor: '#eee',
   },
   content: {
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 15,
   },
   locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginVertical: 10,
+    // flexDirection: 'row',
+    // alignItems: 'center',
+    // gap: 6,
+    // marginVertical: 10,
   },
   locationText: { opacity: 0.8 },
   statsRow: {
@@ -248,7 +285,7 @@ const styles = StyleSheet.create({
   statText: {
     fontSize: 14,
     opacity: 0.75,
-  },
+  }
 });
 
 export default FeedScreen;

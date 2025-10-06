@@ -1,6 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { PostgrestSingleResponse } from '@supabase/supabase-js';
 import { I18nService } from 'nestjs-i18n';
 import { SupabaseService } from 'src/supabase/supabase.service';
+import { PostDetail, ResponsePostPaginated } from './model/post.model';
 
 @Injectable()
 export class PostsDBService {
@@ -9,19 +11,62 @@ export class PostsDBService {
   async create(createPostDto: {
     url: string;
     promptid: string;
+    lat?: number;
+    lng?: number;
+    country?: string;
+    city?: string;
   }, userId: string) {
     const { data, error } = await this.supabaseService
       .getClient()
       .from('posted')
-      .insert({ storage_path: createPostDto.url, user_id: userId, prompt_id: createPostDto.promptid })
+      .insert({ storage_path: createPostDto.url, user_id: userId, prompt_id: createPostDto.promptid, lat: createPostDto.lat, lng: createPostDto.lng, country: createPostDto.country, city: createPostDto.city })
       .select('id, created_at')
       .single();
+
 
     if (error) {
       const msg = this.i18n.t('errors.POST_CREATE_ERROR');
       throw new InternalServerErrorException({ code: 'POST_CREATE_ERROR', message: msg });
     }
-    
+
+    return data;
+  }
+
+
+  async findById(id: string) {
+
+    const { data, error }: PostgrestSingleResponse<PostDetail> = await this.supabaseService
+      .getClient()
+      .rpc('get_post_with_reactions', { p_post_id: id })
+      .single();
+
+    if (error) {
+      const msg = this.i18n.t('errors.POST_NOT_FOUND');
+      throw new InternalServerErrorException({ code: 'POST_NOT_FOUND', message: msg });
+    }
+
+    return data;
+  }
+
+  async getPaginatedPosts(
+    prompt_id: string,
+    limit: number,
+    offset: number,
+  ) {
+
+    let { data, error }: PostgrestSingleResponse<ResponsePostPaginated> = await this.supabaseService
+      .getClient()
+      .rpc('get_global_feed_by_prompt_id', {
+        p_limit: limit,
+        p_offset: offset,
+        p_prompt_id: prompt_id
+      }) 
+      
+    if (error) {
+      const msg = this.i18n.t('errors.POSTS_FETCH_ERROR');
+      throw new InternalServerErrorException({ code: 'POSTS_FETCH_ERROR', message: msg });
+    }
+
     return data;
   }
 

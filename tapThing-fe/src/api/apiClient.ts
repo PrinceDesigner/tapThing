@@ -45,6 +45,7 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
     const response = await fetch(`${baseUrl}${url}`, options);
     if (!response.ok) {
       let errorMessage = `Errore API: ${response.status}`;
+      let code = 'API_ERROR';
 
       if (!__DEV__) {
         // Sentry.captureException({
@@ -60,9 +61,12 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
 
       try {
         const json = await response.json();
+        console.log('Errore API dettagli:', json);
         const msg = Array.isArray(json?.message)
           ? json.message.join('\n')
           : json?.message;
+          
+        code = json?.code || code;
 
         // Override solo se `msg` esiste
         if (msg) {
@@ -92,7 +96,7 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
         if (text) errorMessage = text;
       }
 
-      throw new Error(errorMessage);
+      throw new Error(errorMessage, { cause: code });
     }
 
     const contentLength = response.headers.get('content-length');

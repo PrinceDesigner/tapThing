@@ -33,6 +33,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             }
 
         }
+
         
         res.status(status).json({
             statusCode: status,

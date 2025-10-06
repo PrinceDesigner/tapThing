@@ -84,7 +84,6 @@ export async function uploadImageAndGetUrl(
       return { path, url: data.signedUrl };
     }
   } catch (error) {
-    console.error("Errore upload immagine:", error);
     throw error;
   }
 }

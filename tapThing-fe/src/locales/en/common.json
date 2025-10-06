@@ -65,5 +65,8 @@
   "first_name": "First Name",
   "last_name": "Last Name",
   "back": "Back",
-  "profile_updated_successfully": "Profile updated successfully"
+  "profile_updated_successfully": "Profile updated successfully",
+  "post_loading_error": "An error occurred while loading posts. Please try again later.",
+  "retry": "Retry",
+  "unknown_location": "Unknown location"
 }

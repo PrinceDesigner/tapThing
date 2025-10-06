@@ -9,6 +9,17 @@ import {
 } from 'react-native-paper';
 import { DefaultTheme as NavLight, DarkTheme as NavDark, NavigationContainer } from '@react-navigation/native';
 
+import {
+  QueryClient,
+  QueryClientProvider,
+  focusManager,
+  onlineManager,
+  QueryCache,
+} from '@tanstack/react-query';
+
+import NetInfo from '@react-native-community/netinfo';
+
+
 import { MonoLightTheme } from './theme/lightTheme';
 import { MonoDarkTheme } from './theme/darkTheme';
 import { initI18n } from './i18n';
@@ -17,6 +28,7 @@ import { LoadAppReady } from './screens/LoadAppReady/LoadAppReady';
 import { GlobalLoader } from './components/ui/GlobalLoader';
 import { GlobalSnackbar } from './components/ui/GlobalSnackbar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { AppState } from 'react-native';
 
 function AppContent() {
   const [i18nReady, setI18nReady] = useState(false);
@@ -100,11 +112,46 @@ function AppContent() {
 export default function App() {
 
 
+
+  // --- QueryClient & integrazioni rete/focus ---
+  const queryClient = new QueryClient({
+    queryCache: new QueryCache({
+      onError: (error, query) => {
+        console.error('RQ Query error:', { key: query.queryKey, error });
+      },
+    }),
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        staleTime: 30_000,
+        gcTime: 5 * 60_000,
+        refetchOnReconnect: true,
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+      }
+    },
+  });
+
+  onlineManager.setEventListener((setOnline) =>
+    NetInfo.addEventListener((state) => setOnline(!!state.isConnected))
+  );
+
+  focusManager.setEventListener((handleFocus) => {
+    const sub = AppState.addEventListener('change', (s) => handleFocus(s === 'active'));
+    return () => sub.remove();
+  });
+
+
+
   return (
     <GestureHandlerRootView>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
+        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+      </QueryClientProvider>
     </GestureHandlerRootView>
   );
+
 }

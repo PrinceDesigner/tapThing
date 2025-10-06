@@ -65,5 +65,8 @@
   "first_name": "Nome",
   "last_name": "Cognome",
   "back": "Indietro",
-  "profile_updated_successfully": "Profilo aggiornato con successo"
+  "profile_updated_successfully": "Profilo aggiornato con successo",
+  "post_loading_error": "Si è verificato un errore nel caricamento dei post. Riprova più tardi.",
+  "retry": "Riprova",
+  "unknown_location": "Posizione sconosciuta"
 }

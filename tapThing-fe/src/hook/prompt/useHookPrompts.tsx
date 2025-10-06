@@ -1,49 +1,61 @@
 // hook/prompt/useActivePrompt.ts
-import { useEffect } from 'react';
-import { LoggerUtils } from '@/utils/logger/Logger';
-import { Prompt } from '@/api/prompt/model/prompt.model';
-import { usePromptStore } from '@/store/prompt/prompt.store';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getPromptByIdUser } from '@/api/prompt/prompt.service';
+import type { Prompt } from '@/api/prompt/model/prompt.model';
+import { PROMPT_KEYS } from './prompt.keys';
+
 
 export function useActivePrompt() {
-    const { prompt, isLoading, error, setPrompt, setLoading, setError, reset } = usePromptStore();
+  const qc = useQueryClient();
 
-    useEffect(() => {
-        let aborted = false;
+  const query = useQuery<Prompt | null>({
+    queryKey: PROMPT_KEYS.all,
+    queryFn: () => getPromptByIdUser(),
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
 
-        async function bootstrap() {
-            try {
-                setLoading(true);
-                setError(null);
+  const prompt = query.data ?? null;
 
-                const p: Prompt | null = await getPromptByIdUser();
-                if (aborted) return;
+  return {
+    prompt,
+    isLoading: query.isLoading || query.isFetching,
+    error: query.error ? (query.error as Error).message : null,
+    hasActivePrompt: !!prompt,
+    hasPostedOnPrompt: prompt?.has_posted ?? false,
+    // utility:
+    refetchActivePrompt: query.refetch,
+    invalidateActivePrompt: () =>
+      qc.invalidateQueries({ queryKey: PROMPT_KEYS.all }),
+  };
+}
 
-                setPrompt(p ?? null);
-            } catch (e: any) {
-                if (!aborted) {
-                    LoggerUtils.error('Errore fetch prompt attivo:', e);
-                    setError(e?.message ?? 'Errore sconosciuto');
-                    setPrompt(null);
-                }
-            } finally {
-                if (!aborted) setLoading(false);
-            }
-        }
 
-        bootstrap();
+// Aggiornamenti optimistici della cache del prompt attivo
+export function useUpdatePromptCache() {
+  const qc = useQueryClient();
 
-        return () => {
-            aborted = true;
-        };
-    }, [setPrompt, setLoading, setError]);
+  const setHasPostedOnPrompt = (value: boolean) => {
+    qc.setQueryData<Prompt | null>(PROMPT_KEYS.all, (old) => {
+      if (!old) return old; // se non c'è prompt attivo, non fare nulla
+      return { ...old, has_posted: value };
+    });
+  };
 
-    return {
-        prompt,
-        isLoading,
-        error,
-        hasActivePrompt: !!prompt, // prompt presente => attivo
-        hasPostedOnPrompt: prompt?.has_posted ?? false, // valore già fornito dal backend
-        reset,
-    };
+  const setPostedIdOnPrompt = (postId: string) => {
+    qc.setQueryData<Prompt | null>(PROMPT_KEYS.all, (old) => {
+      if (!old) return old;
+      return { ...old, posted_id: postId };
+    });
+  };
+
+  const setPostedAtOnPrompt = (timestamp: string) => {
+    qc.setQueryData<Prompt | null>(PROMPT_KEYS.all, (old) => {
+      if (!old) return old;
+      return { ...old, posted_at: timestamp };
+    });
+  };
+
+  return { setHasPostedOnPrompt, setPostedIdOnPrompt, setPostedAtOnPrompt };
 }

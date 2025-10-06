@@ -13,12 +13,13 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from "react-native"
 import HowWork from "@/components/ui/HowWork";
-import { usePromptStore } from "@/store/prompt/prompt.store";
 import { uploadImageAndGetUrl } from "@/api/supabase/uploadphoto";
 import { useAuthClienteStore } from "@/store/auth/AuthClienteStore";
 import { useLoadingStore } from "@/store/loaderStore/loaderGlobalStore";
 import { insertPost } from "@/api/posts/post.service";
 import { useSnackbarStore } from "@/store/snackbar/snackbar.store";
+import { useActivePrompt, useUpdatePromptCache } from "@/hook/prompt/useHookPrompts";
+import { useCurrentLocation } from "@/hook/location/useCurrentLocation";
 
 
 /**
@@ -35,15 +36,18 @@ export const InsertPhotoScreen: React.FC = () => {
     const { t } = useTranslation();
     const [asset, setAsset] = useState<null | { uri: string; width?: number; height?: number }>(null);
 
+    const { prompt } = useActivePrompt();
+    const { setHasPostedOnPrompt, setPostedAtOnPrompt, setPostedIdOnPrompt } =
+        useUpdatePromptCache();
+
     const { show } = useSnackbarStore();
 
-    const prompt = usePromptStore((state) => state.prompt);
-    const sethasPostedOnPrompt = usePromptStore((state) => state.setHasPostedOnPrompt);
-    const setPostedIdOnPrompt = usePromptStore((state) => state.setPostedIdOnPrompt);
-    const setPostedAtOnPrompt = usePromptStore((state) => state.setPostedAtOnPrompt);
     const userId = useAuthClienteStore((s) => s.userId); // { id: string } 
     const setLoading = useLoadingStore((s) => s.setLoading);
 
+    const { coords, address, loading, error } = useCurrentLocation();
+
+    console.log("Current location:", coords, address, loading, error);
 
     const requestPermissions = async () => {
         // Galleria
@@ -90,13 +94,13 @@ export const InsertPhotoScreen: React.FC = () => {
                 makePublic: false,         // true se il bucket è pubblico e vuoi URL permanente
             });
 
-            const post = await insertPost(url, prompt?.prompt_id ?? "");
+            const post = await insertPost(url, prompt?.prompt_id ?? "", coords?.latitude ?? null, coords?.longitude ?? null, address?.country ?? null, address?.city ?? null);
 
             const postId = post.id;
             const postCreatedAt = post.created_at;
 
             // Aggiorna lo stato globale dello stimolo
-            sethasPostedOnPrompt(true);
+            setHasPostedOnPrompt(true);
             setPostedIdOnPrompt(postId);
             setPostedAtOnPrompt(postCreatedAt);
 
