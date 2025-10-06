@@ -8,5 +8,6 @@
     "USERNAME_ALREADY_TAKEN": "The username is already taken.",
     "PROMPT_ERROR_FETCH": "Error fetching prompts.",
     "POST_CREATE_ERROR": "Error creating the post.",
-    "POSTS_FETCH_ERROR": "Error fetching posts."
+    "POSTS_FETCH_ERROR": "Error fetching posts.",
+    "POST_DELETE_ERROR": "Error deleting the post."
 }

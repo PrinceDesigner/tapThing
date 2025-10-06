@@ -43,14 +43,14 @@ export function useUpdatePromptCache() {
     });
   };
 
-  const setPostedIdOnPrompt = (postId: string) => {
+  const setPostedIdOnPrompt = (postId: string | null) => {
     qc.setQueryData<Prompt | null>(PROMPT_KEYS.all, (old) => {
       if (!old) return old;
       return { ...old, posted_id: postId };
     });
   };
 
-  const setPostedAtOnPrompt = (timestamp: string) => {
+  const setPostedAtOnPrompt = (timestamp: string | null) => {
     qc.setQueryData<Prompt | null>(PROMPT_KEYS.all, (old) => {
       if (!old) return old;
       return { ...old, posted_at: timestamp };
@@ -59,3 +59,5 @@ export function useUpdatePromptCache() {
 
   return { setHasPostedOnPrompt, setPostedIdOnPrompt, setPostedAtOnPrompt };
 }
+
+

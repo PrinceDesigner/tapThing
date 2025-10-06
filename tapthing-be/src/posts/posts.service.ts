@@ -6,6 +6,7 @@ import { PostsDBService } from './posts-db.service';
 @Injectable()
 export class PostsService {
   constructor(private postsDBService: PostsDBService) { }
+
   create(createPostDto: {
     url: string;
     promptid: string;
@@ -21,16 +22,21 @@ export class PostsService {
     return this.postsDBService.findById(id);
   }
 
-  getPaginatedPosts(
+  getPaginatedPostsCursor(
     prompt_id: string,
     limit: number,
-    offset: number,
+    cursor: { id: string | null, created_at: string | null }
   ) {
+
     return this.postsDBService.getPaginatedPosts(
       prompt_id,
       limit,
-      offset,
+      cursor.created_at,
+      cursor.id,
     );
   }
 
+  removePostById(id: string) {
+    return this.postsDBService.removePostById(id);
+  }
 }

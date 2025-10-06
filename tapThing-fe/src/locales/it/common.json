@@ -68,5 +68,9 @@
   "profile_updated_successfully": "Profilo aggiornato con successo",
   "post_loading_error": "Si è verificato un errore nel caricamento dei post. Riprova più tardi.",
   "retry": "Riprova",
-  "unknown_location": "Posizione sconosciuta"
+  "unknown_location": "Posizione sconosciuta",
+  "your_latest_post": "Il tuo ultimo post",
+  "delete_post": "Elimina post",
+  "are_you_sure_delete_post": "Sei sicuro di voler eliminare questo post?",
+  "yes_delete": "Sì, elimina"
 }

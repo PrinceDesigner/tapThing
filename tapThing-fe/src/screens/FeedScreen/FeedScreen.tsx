@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import React, { useState, useCallback, useMemo, useEffect, useRef, use } from 'react';
+import { View, StyleSheet, Image, TouchableOpacity, NativeSyntheticEvent, NativeScrollEvent, RefreshControl } from 'react-native';
 import { Card, ToggleButton, Avatar, useTheme, Text, Icon, ActivityIndicator, Button, FAB } from 'react-native-paper';
 import ImageViewing from 'react-native-image-viewing';
 import { FlashList } from '@shopify/flash-list';
@@ -7,12 +7,6 @@ import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
 import { PostDetail, Reactions } from '@/api/posts/model/post.model';
 import { usePostInfinite } from '@/hook/post/postQuery/postQuery';
 import { useTranslation } from 'react-i18next';
-import * as Location from 'expo-location';
-import { captureRef } from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
-
-
-
 
 // ======== Mappa helper ========
 type Shortcode = 'cuore' | 'pollice_su' | 'pollice_giu';
@@ -25,6 +19,9 @@ const toCountsMap = (r: Reactions): CountsMap => {
   });
   return base;
 };
+
+const SCROLL_TO_TOP_THRESHOLD = 350; // px di scroll dopo cui mostrare il FAB
+
 
 // ======== UI Component ========
 const FeedScreen: React.FC = () => {
@@ -56,7 +53,7 @@ const FeedScreen: React.FC = () => {
         MOCK_POST_DETAILS.map(pd => [pd.post.id, toCountsMap(pd.reactions)])
       )
   );
-
+  
   // image viewer
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
@@ -66,6 +63,26 @@ const FeedScreen: React.FC = () => {
     () => MOCK_POST_DETAILS.map(pd => ({ uri: pd.post.storage_path })),
     []
   );
+
+  // handler scrooll
+
+  type FlashListRef = React.ComponentRef<typeof FlashList<PostDetail>>;
+
+  const listRef = useRef<FlashListRef>(null);
+
+  const [showFab, setShowFab] = useState(false);
+
+
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    // evita setState continui: aggiorna solo quando cambia "zona"
+    setShowFab(prev => (y > SCROLL_TO_TOP_THRESHOLD ? (prev || true) : (prev && false)));
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    listRef.current?.scrollToOffset({ animated: true, offset: 0 });
+  }, []);
+
 
 
   const handleChangeReaction = useCallback((postId: string, nextRaw: Shortcode | null) => {
@@ -100,6 +117,7 @@ const FeedScreen: React.FC = () => {
 
   const renderItem = useCallback(
     ({ item, index }: { item: PostDetail; index: number }) => {
+
       const postId = item.post.id;
       const selected = selectedReaction[postId] ?? null;
       const counts = countsByPost[postId] ?? { cuore: 0, pollice_su: 0, pollice_giu: 0 };
@@ -196,36 +214,62 @@ const FeedScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View
-        style={{
-          padding: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.colors.outline,
-          backgroundColor: theme.colors.surface,
-        }}
-      >
-        <Text
-          variant="titleMedium"
-          style={{ letterSpacing: 0.2, color: theme.colors.onSurface, fontWeight: '700', textAlign: 'center' }}
-        >
+      {/* header */}
+      <View style={{
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.outline,
+        backgroundColor: theme.colors.surface,
+      }}>
+        <Text variant="titleMedium" style={{ letterSpacing: 0.2, color: theme.colors.onSurface, fontWeight: '700', textAlign: 'center' }}>
           {prompt?.title}
         </Text>
       </View>
 
       <FlashList
-        onRefresh={refetch}
+        ref={listRef}
         data={MOCK_POST_DETAILS}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        onEndReached={() => {
-          if (hasNextPage) fetchNextPage();
-        }}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching && !isFetchingNextPage} onRefresh={refetch} />
+        }
         onEndReachedThreshold={0.5}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+        }}
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <View style={{ paddingVertical: 16 }}>
+              <ActivityIndicator />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          !isLoading ? (
+            <View style={{ paddingVertical: 32, alignItems: "center" }}>
+              <Text>No posts available</Text>
+            </View>
+          ) : null
+        }
+        removeClippedSubviews
         scrollEventThrottle={16}
-
+        onScroll={handleScroll} // <— aggiunto
       />
+
+      {/* FAB scroll-to-top */}
+      {showFab && (
+        <FAB
+          icon="arrow-up"
+          onPress={scrollToTop}
+          style={styles.fab}
+          mode="elevated"
+          size="medium"
+          accessibilityLabel="Torna all'inizio"
+        />
+      )}
 
       <ImageViewing
         images={imagesForViewer}
@@ -285,7 +329,12 @@ const styles = StyleSheet.create({
   statText: {
     fontSize: 14,
     opacity: 0.75,
-  }
+  },
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 24,
+  },
 });
 
 export default FeedScreen;

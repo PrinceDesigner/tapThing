@@ -51,23 +51,41 @@ export class PostsDBService {
   async getPaginatedPosts(
     prompt_id: string,
     limit: number,
-    offset: number,
-  ) {
+    last_created_at: string | null,
+    last_id: string | null,
+  ): Promise<ResponsePostPaginated> {
+    const { data, error }: PostgrestSingleResponse<ResponsePostPaginated> =
+      await this.supabaseService.getClient().rpc('get_global_feed_by_prompt_id_v2', {
+        p_prompt_id: prompt_id,
+        p_limit: limit,                  // <-- niente +1: lo gestisce la RPC
+        p_last_created_at: last_created_at, // ISO8601 o null
+        p_last_id: last_id,                 // string o null
+      });
 
-    let { data, error }: PostgrestSingleResponse<ResponsePostPaginated> = await this.supabaseService
-      .getClient()
-      .rpc('get_global_feed_by_prompt_id', {
-        p_limit: limit,
-        p_offset: offset,
-        p_prompt_id: prompt_id
-      }) 
-      
     if (error) {
       const msg = this.i18n.t('errors.POSTS_FETCH_ERROR');
       throw new InternalServerErrorException({ code: 'POSTS_FETCH_ERROR', message: msg });
     }
 
-    return data;
+    // BE fa solo da passthrough della RPC
+    return data!;
   }
+
+  async removePostById(id: string) {
+    const { error } = await this.supabaseService
+      .getClient()
+      .from('posted')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      const msg = this.i18n.t('errors.POST_DELETE_ERROR');
+      throw new InternalServerErrorException({ code: 'POST_DELETE_ERROR', message: msg });
+    }
+
+    return { success: true };
+  }
+
+
 
 }

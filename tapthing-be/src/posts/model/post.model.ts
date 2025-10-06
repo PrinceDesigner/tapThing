@@ -27,7 +27,6 @@ export type Author = {
 }
 
 export type Reactions = {
-  total: number
   byEmoji: ByEmoji[]
 }
 
@@ -42,6 +41,8 @@ export type ByEmoji = {
 
 export type ResponsePostPaginated = {
   posts: PostDetail[]
-  total: number,
-  nextOffset: number | null
+  nextCursor: {
+    id: string | null,
+    created_at: string | null
+  } | null
 }

@@ -3,6 +3,7 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { SupabaseAuthGuard } from 'src/guard/supabase.guard';
 import { CurrentUser } from 'src/common/decoratores/current-user.decorator';
+import { GetPaginatedPostsDto } from './dto/get-paginated-posts.dto';
 
 @UseGuards(SupabaseAuthGuard)
 @Controller('posts')
@@ -21,17 +22,17 @@ export class PostsController {
 
 
   @Get('/paginated/get')
-  async getPaginatedPosts(
-    @Query('prompt_id') prompt_id: string,
-    @Query('limit') limit: number,
-    @Query('offset') offset: number,
-  ) {
+  async getPaginatedPosts(@Query() q: GetPaginatedPostsDto) {
+    const { prompt_id, limit, cursor_id, cursor_created_at } = q;
+    return this.postsService.getPaginatedPostsCursor(prompt_id, limit, {
+      id: cursor_id ?? null,
+      created_at: cursor_created_at ?? null,
+    });
+  }
 
-    return this.postsService.getPaginatedPosts(
-      prompt_id,
-      limit,
-      offset,
-    );
+  @Delete('/:id')
+  remove(@Param('id') id: string) {
+    return this.postsService.removePostById(id);
   }
 
 }
