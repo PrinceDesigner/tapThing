@@ -18,6 +18,11 @@ import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
 import { updateCurrentUser } from '@/api/users/users.service';
 import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 
+import * as ImagePicker from 'expo-image-picker';
+import { useAuthClienteStore } from '@/store/auth/AuthClienteStore';
+import { uploadImageAndGetUrl } from '@/api/supabase/uploadphoto';
+
+
 const ProfiloUpdateScreen = () => {
   const nav = useNavigation<any>();
   const { t } = useTranslation();
@@ -25,6 +30,12 @@ const ProfiloUpdateScreen = () => {
 
   const { setLoading } = useLoadingStore();
   const { show } = useSnackbarStore();
+
+  // image
+  const [asset, setAsset] = useState<null | { uri: string; width?: number; height?: number }>(null);
+
+  const userId = useAuthClienteStore((s) => s.userId); // { id: string } 
+
 
   // ----- Stato locale del form (inizializzato dai dati reali) -----
   const profile = useUserStore((s) => s.profile);
@@ -37,6 +48,7 @@ const ProfiloUpdateScreen = () => {
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
 
+
   // Quando lo store è pronto o cambia il profilo, popola i campi
   useEffect(() => {
     if (profile) {
@@ -48,42 +60,81 @@ const ProfiloUpdateScreen = () => {
     }
   }, [profile]);
 
+  // --- sostituisci il tuo displayAvatar con questo ---
   const displayAvatar = useMemo(
-    () => avatarUrl || 'https://i.pravatar.cc/300?img=12',
-    [avatarUrl]
+    () => asset?.uri ?? avatarUrl ?? 'https://i.pravatar.cc/300?img=12',
+    [asset, avatarUrl]
   );
 
-  const handleSave = async () => {
-    // Qui puoi chiamare la tua API (Supabase/NestJS) e poi usare updateProfile per l’ottimismo.
-    const patch: Partial<User> = {
-      username: username.trim(),
-      nome: nome.trim(),
-      cognome: cognome.trim(),
-      bio: bio,
-      avatar_url: avatarUrl,
-    };
+  // Galleria
+  const requestPermissions = async () => {
+    const lib = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    return lib.status === 'granted';
+  };
 
+  // --- migliora la selezione per avere crop 1:1 e solo immagini ---
+  const choosePhoto = async () => {
+    const ok = await requestPermissions();
+    if (!ok) return;
+
+    const res = await ImagePicker.launchImageLibraryAsync({
+      allowsMultipleSelection: false,
+      allowsEditing: true,        // per usare aspect
+      aspect: [1, 1],             // crop quadrato
+      quality: 0.9,
+      mediaTypes: ['images'], // <— tipo corretto
+    });
+
+    if (!res.canceled) {
+      const img = res.assets[0];
+      setAsset({ uri: img.uri, width: img.width, height: img.height });
+    }
+  };
+
+  // --- carica su Supabase SOLO se c'è una nuova immagine in asset ---
+  const handleSave = async () => {
     try {
       setLoading(true);
+
+      let newAvatarUrl = avatarUrl;
+
+      if (asset?.uri) {
+        const folder = `${userId}/profile`;
+        const { url } = await uploadImageAndGetUrl(asset.uri, {
+          bucket: 'images',
+          folder,
+          makePublic: false,
+        });
+        newAvatarUrl = url;
+      }
+
+      const patch: Partial<User> = {
+        username: username.trim(),
+        nome: nome.trim(),
+        cognome: cognome.trim(),
+        bio,
+        avatar_url: newAvatarUrl, // usa quello nuovo o quello già salvato
+      };
+
       await updateCurrentUser(patch);
       updateProfile(patch);
+
+      // sync locale: se hai appena caricato un file, rendilo l’avatar di default
+      setAvatarUrl(newAvatarUrl);
+      setAsset(null);
+
       show(t('profile_updated_successfully') || 'Profilo aggiornato', 'success');
       nav.goBack();
     } catch (error) {
-      console.error('Errore aggiornando il profilo:', error instanceof Error ? error.message : error);
-      if (error instanceof Error) {
-        show(error.message, 'error');
-      }
+      console.error('Errore aggiornando il profilo:', error);
+      if (error instanceof Error) show(error.message, 'error');
     } finally {
       setLoading(false);
     }
-
   };
 
   const handleChangeAvatar = async () => {
-    // TODO: apri image picker e carica su storage => ottieni URL pubblico
-    console.log('Cambio avatar premuto');
-    // setAvatarUrl(newUrl);
+    await choosePhoto();
   };
 
   if (!isProfileReady) {
@@ -174,7 +225,7 @@ const ProfiloUpdateScreen = () => {
             style={[styles.input, styles.bio]}
             textAlignVertical="top"
             returnKeyType="go"
-            onKeyPress={({ nativeEvent}) => {
+            onKeyPress={({ nativeEvent }) => {
               if (nativeEvent.key === 'Enter') {
                 Keyboard.dismiss();
               }

@@ -36,8 +36,6 @@ export function usePostInfinite(
 ) {
   const pageSize = opts?.pageSize ?? 20;
 
-  console.log("usePostInfinite", { prompt_id, pageSize });
-
   return useInfiniteQuery<ResponsePostPaginated, Error>({
     queryKey: ["posts", prompt_id, pageSize],
     enabled: !!prompt_id,

@@ -74,5 +74,7 @@
   "are_you_sure_delete_post": "Sei sicuro di voler eliminare questo post?",
   "yes_delete": "Sì, elimina",
   "POST_DELETE_ERROR": "Errore durante l'eliminazione del post.",
-  "POST_NOT_FOUND_OR_NOT_YOURS": "Post non trovato o non sei il proprietario."
+  "POST_NOT_FOUND_OR_NOT_YOURS": "Post non trovato o non sei il proprietario.",
+  "share_mode": "Condividi post",
+  "save": "Salva"
 }

@@ -48,8 +48,6 @@ export const InsertPhotoScreen: React.FC = () => {
 
     const { coords, address, loading, error } = useCurrentLocation();
 
-    console.log("Current location:", coords, address, loading, error);
-
     const requestPermissions = async () => {
         // Galleria
         const lib = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -95,7 +93,11 @@ export const InsertPhotoScreen: React.FC = () => {
                 makePublic: false,         // true se il bucket è pubblico e vuoi URL permanente
             });
 
-            const post = await insertPost(url, prompt?.prompt_id ?? "", coords?.latitude ?? null, coords?.longitude ?? null, address?.country ?? null, address?.city ?? null);
+            const post = await insertPost(url, prompt?.prompt_id ?? "",
+                coords?.latitude ?? null,
+                coords?.longitude ?? null,
+                address?.country ?? null,
+                address?.city ?? null);
 
             const postId = post.id;
             const postCreatedAt = post.created_at;
@@ -171,7 +173,7 @@ export const InsertPhotoScreen: React.FC = () => {
                         marginHorizontal: 16,
                         marginTop: 16,
                         borderRadius: 16,
-                        overflow: "hidden",
+                        // overflow: "hidden",
                         backgroundColor: theme.colors.background,
                     }}
                     mode="outlined"

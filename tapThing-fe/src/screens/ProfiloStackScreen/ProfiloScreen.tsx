@@ -19,37 +19,22 @@ const ProfiloScreen = () => {
   const profile = useUserStore((s) => s.profile);
 
   const nav = useNavigation<any>();
-
   const { prompt } = useActivePrompt();
 
   const { post } = usePostQuery(prompt?.posted_id || '');
 
-  const { mutate: deletePost, isPending } = useDeletePost();
-
   const promptTitle = prompt?.title;
 
-
-
-
   const handleEditProfile = () => {
-    // nav.navigate('ProfiloUpdateScreen');
-    open();
+    nav.navigate('ProfiloUpdateScreen');
   };
-
-  if (isPending) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
 
   return (
     <>
       <ScrollView contentContainerStyle={{ paddingBottom: 200 }}>
         <View style={styles.container}>
           <Image
-            source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
+            source={{ uri: profile?.avatar_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }}
             style={styles.avatar}
           />
 

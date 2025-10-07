@@ -15,6 +15,9 @@ import { BottomSheetGeneral } from '../bottomSheetGeneral/BottomSheetGeneral';
 import { useBottomSheetGeneral } from '@/hook/useBottomSheetGeneral';
 import { useDeletePost } from '@/hook/post/postQuery/postQuery';
 import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
+import { usePinchPan } from '@/hook/usePinchPanAnimate/usePinchPan';
+import { useShareSnapshot } from '@/hook/shareSnapshot/useShareSnapshot';
+import { MOCK_AVATAR } from '@/constants/mockAvatar';
 
 interface FeedPostProps {
   post: PostDetail;
@@ -36,72 +39,30 @@ const toCountsMap = (r: Reactions): CountsMap => {
 const FeedPost = ({ post }: FeedPostProps) => {
 
   const theme = useTheme();
+  const { t } = useTranslation();
 
   const { mutate: deletePost, isPending } = useDeletePost();
+  const { author, post: postData, reactions } = post;
+  const { prompt } = useActivePrompt();
+  const [shareMode, setShareMode] = useState(false);
 
-  // --- Shared values ---
-  const scale = useSharedValue(1);
-  const savedScale = useSharedValue(1);
 
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const savedTranslateX = useSharedValue(0);
-  const savedTranslateY = useSharedValue(0);
+  // share
+  const { SnapTarget, share, busy } = useShareSnapshot({
+    // width: 1080, height: 1350, format: "png",
+    onBeforeShare: () => setShareMode(true),
+    onAfterShare: () => setShareMode(false),
+  });
 
-  // Pinch: consenti solo >= 1, e al rilascio resetta tutto
-  const pinchGesture = Gesture.Pinch()              // ⬅️ importante
-    .onBegin(() => {
-      // fotografa lo stato corrente di scala per il pinch corrente
-      savedScale.value = scale.value;
-    })
-    .onUpdate((e) => {
-      // blocca lo zoom minimo a 1
-      const next = Math.max(1, savedScale.value * e.scale);
-      scale.value = next;
-    })
-    .onFinalize(() => {
-      // appena "lascio lo zoom": torna tutto iniziale
-      scale.value = withTiming(1, { duration: 180 });
-      savedScale.value = 1;
-
-      translateX.value = withTiming(0, { duration: 180 });
-      translateY.value = withTiming(0, { duration: 180 });
-      savedTranslateX.value = 0;
-      savedTranslateY.value = 0;
-    });
-
-  // Pan: attivo solo quando zoom > 1; si muove finché il pinch è attivo
-  const panGesture = Gesture.Pan()
-    .onBegin(() => {
-      savedTranslateX.value = translateX.value;
-      savedTranslateY.value = translateY.value;
-    })
-    .minPointers(2)
-    .onUpdate((e) => {
-      if (scale.value > 1) {
-        translateX.value = savedTranslateX.value + e.translationX;
-        translateY.value = savedTranslateY.value + e.translationY;
-      }
-    });
-
-  const composed = Gesture.Simultaneous(pinchGesture, panGesture);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-
-  }));
-
+  // Pinch & Pan
+  const { composed, animatedStyle } = usePinchPan();
 
   const sheet = useBottomSheetGeneral();
-
   const open = () => sheet.present();
 
   const [visible, setVisible] = React.useState(false);
 
+  // Modal elimina
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
   const containerStyle = { backgroundColor: theme.colors.primaryContainer, padding: 20, margin: 20, borderRadius: 12 };
@@ -110,12 +71,6 @@ const FeedPost = ({ post }: FeedPostProps) => {
     showModal();
     sheet.dismiss();
   }
-
-
-  const { t } = useTranslation();
-  const { author, post: postData, reactions } = post;
-
-  const { prompt } = useActivePrompt();
 
   const [selectedReaction, setSelectedReaction] = useState<Record<string, Shortcode | null>>({});
   const [countsDeltaByPost, setCountsDeltaByPost] = useState<Record<string, CountsMap>>({});
@@ -127,8 +82,8 @@ const FeedPost = ({ post }: FeedPostProps) => {
   const actionsBottomSheet = useMemo(
     () =>
       isPostOnPrompt
-        ? [{ label: 'Elimina', onPress: showModalMetodo }]
-        : [],
+        ? [{ label: t('share_mode'), onPress: () => { share().catch(console.warn); sheet.dismiss(); }, disabled: busy }, { label: t('delete_post'), onPress: showModalMetodo }]
+        : [{ label: t('share_mode'), onPress: () => { share().catch(console.warn); sheet.dismiss(); }, disabled: busy }],
     [isPostOnPrompt, showModalMetodo]
   );
 
@@ -151,7 +106,7 @@ const FeedPost = ({ post }: FeedPostProps) => {
     return city && country ? `${city}, ${country}` : t('unknown_location');
   }, [postData.city, postData.country, t]);
 
-  const avatarSource = useMemo(() => ({ uri: author.avatar_url }), [author.avatar_url]);
+  const avatarSource = useMemo(() => ({ uri: author.avatar_url || MOCK_AVATAR }), [author.avatar_url]);
   const imageSource = useMemo(() => ({ uri: postData.storage_path } as const), [postData.storage_path]);
 
   const currentSelected = selectedReaction[postId] ?? null;
@@ -182,88 +137,100 @@ const FeedPost = ({ post }: FeedPostProps) => {
   return (
     <>
       <GestureDetector gesture={composed}>
-        <Card elevation={0} style={styles.card}>
-
-          <Card.Title
-            title={
-              <View>
-                <Text variant="labelLarge">{`@${author.username}`}</Text>
-                <Text variant="labelSmall" style={styles.locationText}>{location}</Text>
-              </View>
-            }
-            titleVariant="titleMedium"
-            left={(props) => <Avatar.Image {...props} size={30} source={avatarSource} />}
-            leftStyle={{ marginRight: 0, marginLeft: 0 }}
-            right={(props) => (
-              <IconButton
-                {...props}
-                onPress={open}
-                icon="dots-vertical"
-                size={28}
-                style={{ marginRight: 8 }}
-              />
-            )}
-          />
-
-          <View style={styles.imageWrapper}>
-            {!imgLoaded && <View style={styles.imageSkeleton} />}
-            <Animated.View style={[animatedStyle]}>
-              <ExpoImage
-                source={imageSource}
-                style={[styles.image]}
-                contentFit="cover"
-                transition={200}
-                cachePolicy="disk"
-                onLoadStart={() => setImgLoaded(false)}
-                onLoadEnd={() => setImgLoaded(true)}
-              />
-            </Animated.View>
-
-          </View>
-
-          <Card.Actions style={styles.content}>
-            <View style={styles.statsRow}>
-              {/* Cuore */}
-              <View style={styles.stat}>
-                <ToggleButton
-                  icon="heart"
-                  value="cuore"
-                  iconColor={currentSelected === 'cuore' ? 'red' : undefined}
-                  onPress={() => handleChangeReaction(postId, 'cuore')}
-                  style={styles.iconBtn}
-                  rippleColor="transparent"
+        <SnapTarget>
+          <Card elevation={0} style={styles.card}>
+            <Card.Title
+              title={
+                <View>
+                  <Text variant="labelLarge">{`@${author.username}`}</Text>
+                  <Text variant="labelSmall" style={styles.locationText}>{location}</Text>
+                </View>
+              }
+              titleVariant="titleMedium"
+              left={(props) => <Avatar.Image {...props} size={30} source={avatarSource} />}
+              leftStyle={{ marginRight: 0, marginLeft: 0 }}
+              right={(props) => (
+                <IconButton
+                  {...props}
+                  onPress={open}
+                  icon="dots-vertical"
+                  size={28}
+                  style={{ marginRight: 8 }}
                 />
-                <Text style={styles.statText}>{displayedCounts.cuore}</Text>
-              </View>
+              )}
+            />
 
-              {/* Pollice su */}
-              <View style={styles.stat}>
-                <ToggleButton
-                  icon="thumb-up"
-                  value="pollice_su"
-                  iconColor={currentSelected === 'pollice_su' ? 'rgb(41, 41, 226)' : undefined}
-                  onPress={() => handleChangeReaction(postId, 'pollice_su')}
-                  style={styles.iconBtn}
-                  rippleColor="transparent"
+            <View style={styles.imageWrapper}>
+              {!imgLoaded && <View style={styles.imageSkeleton} />}
+              <Animated.View style={[animatedStyle]}>
+                <ExpoImage
+                  source={imageSource}
+                  style={[styles.image]}
+                  contentFit="cover"
+                  transition={200}
+                  cachePolicy="disk"
+                  onLoadStart={() => setImgLoaded(false)}
+                  onLoadEnd={() => setImgLoaded(true)}
                 />
-                <Text style={styles.statText}>{displayedCounts.pollice_su}</Text>
-              </View>
-
-              {/* Pollice giù */}
-              <View style={styles.stat}>
-                <ToggleButton
-                  icon="thumb-down"
-                  value="pollice_giu"
-                  iconColor={currentSelected === 'pollice_giu' ? 'rgba(102, 42, 42, 0.986)' : undefined}
-                  onPress={() => handleChangeReaction(postId, 'pollice_giu')}
-                  style={styles.iconBtn}
-                  rippleColor="transparent"
-                />
-                <Text style={styles.statText}>{displayedCounts.pollice_giu}</Text>
-              </View>
+              </Animated.View>
             </View>
-          </Card.Actions>
-        </Card>
+
+            <Card.Actions style={styles.content}>
+              <View style={styles.statsRow}>
+                {/* Cuore */}
+                <View style={styles.stat}>
+                  <ToggleButton
+                    icon="heart"
+                    value="cuore"
+                    iconColor={currentSelected === 'cuore' ? 'red' : undefined}
+                    onPress={() => handleChangeReaction(postId, 'cuore')}
+                    style={styles.iconBtn}
+                    rippleColor="transparent"
+                  />
+                  <Text style={styles.statText}>{displayedCounts.cuore}</Text>
+                </View>
+
+                {/* Pollice su */}
+                <View style={styles.stat}>
+                  <ToggleButton
+                    icon="thumb-up"
+                    value="pollice_su"
+                    iconColor={currentSelected === 'pollice_su' ? 'rgb(41, 41, 226)' : undefined}
+                    onPress={() => handleChangeReaction(postId, 'pollice_su')}
+                    style={styles.iconBtn}
+                    rippleColor="transparent"
+                  />
+                  <Text style={styles.statText}>{displayedCounts.pollice_su}</Text>
+                </View>
+
+                {/* Pollice giù */}
+                <View style={styles.stat}>
+                  <ToggleButton
+                    icon="thumb-down"
+                    value="pollice_giu"
+                    iconColor={currentSelected === 'pollice_giu' ? 'rgba(102, 42, 42, 0.986)' : undefined}
+                    onPress={() => handleChangeReaction(postId, 'pollice_giu')}
+                    style={styles.iconBtn}
+                    rippleColor="transparent"
+                  />
+                  <Text style={styles.statText}>{displayedCounts.pollice_giu}</Text>
+                </View>
+              </View>
+            </Card.Actions>
+            {
+              shareMode &&
+              <View>
+                <View style={{ paddingLeft: 16, paddingBottom: 8 }}>
+                  <Text style={{ fontWeight: 'bold', fontSize: 20 }}>TapThing</Text>
+                </View>
+                <View style={{ paddingHorizontal: 16 }}>
+                  <Text variant='labelLarge' style={{ textAlign: 'center' }}>{prompt?.title}</Text>
+                </View>
+              </View>
+
+            }
+          </Card>
+        </SnapTarget>
       </GestureDetector>
 
 
@@ -322,13 +289,13 @@ function areEqual(prev: Readonly<FeedPostProps>, next: Readonly<FeedPostProps>) 
   return true;
 }
 
-export default FeedPost;
+export default memo(FeedPost, areEqual);
 
 const styles = StyleSheet.create({
   card: {
     // marginBottom: 14,
     borderRadius: 16,
-    overflow: 'hidden',
+    // overflow: 'hidden',
   },
   locationText: { opacity: 0.8 },
   stat: {

@@ -57,8 +57,9 @@ export const BottomSheetGeneral = forwardRef<BottomSheetGeneralRef, BottomSheetG
                   onPress={a.onPress}
                   disabled={a.disabled}
                   style={{
+                    marginBottom: 4,
                     padding: 20,
-                    backgroundColor: theme.colors.primaryContainer,
+                    backgroundColor:  theme.colors.primaryContainer,
                     borderWidth: 1,
                     borderColor: theme.colors.outline,
                     borderRadius: 12,
