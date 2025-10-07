@@ -71,16 +71,23 @@ export class PostsDBService {
     return data!;
   }
 
-  async removePostById(id: string) {
-    const { error } = await this.supabaseService
+  async removePostById(id: string, user_id: string) {
+    const { data, error } = await this.supabaseService
       .getClient()
       .from('posted')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user_id)
+      .select('id');
 
     if (error) {
       const msg = this.i18n.t('errors.POST_DELETE_ERROR');
       throw new InternalServerErrorException({ code: 'POST_DELETE_ERROR', message: msg });
+    }
+
+    if (data.length === 0) {
+      const msg = this.i18n.t('errors.POST_NOT_FOUND_OR_NOT_YOURS');
+      throw new InternalServerErrorException({ code: 'POST_NOT_FOUND_OR_NOT_YOURS', message: msg });
     }
 
     return { success: true };

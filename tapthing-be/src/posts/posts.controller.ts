@@ -31,8 +31,8 @@ export class PostsController {
   }
 
   @Delete('/:id')
-  remove(@Param('id') id: string) {
-    return this.postsService.removePostById(id);
+  remove(@Param('id') id: string, @CurrentUser('id') user_id: string) {
+    return this.postsService.removePostById(id, user_id);
   }
 
 }

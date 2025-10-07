@@ -184,8 +184,8 @@ const FeedScreen: React.FC = () => {
           ) : null
         }
         // // Viewability API (supportata): perfetta per prefetch e impression
-        // onViewableItemsChanged={onViewableItemsChanged}
-        // viewabilityConfig={viewabilityConfig}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         scrollEventThrottle={16}
         onScroll={handleScroll}
       />

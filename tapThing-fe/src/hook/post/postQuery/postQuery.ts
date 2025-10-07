@@ -2,8 +2,10 @@
 import { PostDetail, ResponsePostPaginated } from '@/api/posts/model/post.model';
 import { deletePost, getPostById, getPosts } from '@/api/posts/post.service';
 import { useUpdatePromptCache } from '@/hook/prompt/useHookPrompts';
+import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
 import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import { InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 export function usePostQuery(id: string) {
   const qc = useQueryClient();
@@ -34,6 +36,8 @@ export function usePostInfinite(
 ) {
   const pageSize = opts?.pageSize ?? 20;
 
+  console.log("usePostInfinite", { prompt_id, pageSize });
+
   return useInfiniteQuery<ResponsePostPaginated, Error>({
     queryKey: ["posts", prompt_id, pageSize],
     enabled: !!prompt_id,
@@ -50,20 +54,39 @@ export function usePostInfinite(
   });
 }
 
+export function useResetAllPosts() {
+  const queryClient = useQueryClient()
+
+  return async () => {
+    // se ci sono fetch in corso, li fermo
+    await queryClient.cancelQueries({ queryKey: ['posts'] })
+    // rimuovo TUTTE le varianti (infinite pages incluse)
+    queryClient.removeQueries({ queryKey: ['posts'], exact: false })
+    // opzionale: se lo screen è già montato, forzo subito un nuovo fetch
+    // await queryClient.refetchQueries({ queryKey: ['posts'], type: 'active' })
+  }
+}
+
 export function useDeletePost() {
   const qc = useQueryClient();
   const { setHasPostedOnPrompt, setPostedIdOnPrompt, setPostedAtOnPrompt } =
     useUpdatePromptCache();
-  
+      const resetAllPosts = useResetAllPosts();
+  const { t } = useTranslation();
+
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await deletePost(id);
-      if (!res?.success) throw new Error('Delete failed');
       return res;
+    },
+
+    onMutate: (id) => {
+      useLoadingStore.getState().setLoading(true);
     },
 
     onSuccess: (_res, id) => {
       // 1) aggiorna il prompt attivo
+      resetAllPosts();
       setHasPostedOnPrompt(false);
       setPostedIdOnPrompt(null);
       setPostedAtOnPrompt(null);
@@ -89,12 +112,16 @@ export function useDeletePost() {
           pages: newPages,
         });
       }
-
+      useLoadingStore.getState().setLoading(false);
       useSnackbarStore.getState().show('Delete successful', 'success');
       // nessuna invalidate: zero rete
     },
 
     // opzionale: feedback UI
-    // onError: (e) => showToast(t('delete_failed')),
+    onError: (e: any) => {
+      const deleteError = t(e.cause);
+      useSnackbarStore.getState().show(deleteError, 'error');
+      useLoadingStore.getState().setLoading(false);
+    },
   });
 }

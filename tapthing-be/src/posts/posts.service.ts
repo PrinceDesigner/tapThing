@@ -36,7 +36,7 @@ export class PostsService {
     );
   }
 
-  removePostById(id: string) {
-    return this.postsDBService.removePostById(id);
+  removePostById(id: string, user_id: string) {
+    return this.postsDBService.removePostById(id, user_id);
   }
 }

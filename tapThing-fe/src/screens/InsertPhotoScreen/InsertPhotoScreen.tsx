@@ -40,6 +40,7 @@ export const InsertPhotoScreen: React.FC = () => {
     const { setHasPostedOnPrompt, setPostedAtOnPrompt, setPostedIdOnPrompt } =
         useUpdatePromptCache();
 
+
     const { show } = useSnackbarStore();
 
     const userId = useAuthClienteStore((s) => s.userId); // { id: string } 
@@ -99,7 +100,7 @@ export const InsertPhotoScreen: React.FC = () => {
             const postId = post.id;
             const postCreatedAt = post.created_at;
 
-            // Aggiorna lo stato globale dello stimolo
+            // Aggiornamenti optimistici della cache del prompt attivo
             setHasPostedOnPrompt(true);
             setPostedIdOnPrompt(postId);
             setPostedAtOnPrompt(postCreatedAt);

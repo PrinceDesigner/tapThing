@@ -1,7 +1,7 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, AccessibilityInfo } from 'react-native';
 import { PostDetail, Reactions } from '@/api/posts/model/post.model';
-import { Avatar, Button, Card, IconButton, Text, ToggleButton } from 'react-native-paper';
+import { ActivityIndicator, Avatar, Button, Card, IconButton, Modal, Portal, Text, ToggleButton, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import ImageViewing from 'react-native-image-viewing';
 import { Image as ExpoImage } from 'expo-image';
@@ -11,6 +11,10 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import { BottomSheetGeneral } from '../bottomSheetGeneral/BottomSheetGeneral';
+import { useBottomSheetGeneral } from '@/hook/useBottomSheetGeneral';
+import { useDeletePost } from '@/hook/post/postQuery/postQuery';
+import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
 
 interface FeedPostProps {
   post: PostDetail;
@@ -30,6 +34,11 @@ const toCountsMap = (r: Reactions): CountsMap => {
 };
 
 const FeedPost = ({ post }: FeedPostProps) => {
+
+  const theme = useTheme();
+
+  const { mutate: deletePost, isPending } = useDeletePost();
+
   // --- Shared values ---
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
@@ -87,15 +96,42 @@ const FeedPost = ({ post }: FeedPostProps) => {
   }));
 
 
+  const sheet = useBottomSheetGeneral();
+
+  const open = () => sheet.present();
+
+  const [visible, setVisible] = React.useState(false);
+
+  const showModal = () => setVisible(true);
+  const hideModal = () => setVisible(false);
+  const containerStyle = { backgroundColor: theme.colors.primaryContainer, padding: 20, margin: 20, borderRadius: 12 };
+
+  const showModalMetodo = () => {
+    showModal();
+    sheet.dismiss();
+  }
+
 
   const { t } = useTranslation();
   const { author, post: postData, reactions } = post;
+
+  const { prompt } = useActivePrompt();
 
   const [selectedReaction, setSelectedReaction] = useState<Record<string, Shortcode | null>>({});
   const [countsDeltaByPost, setCountsDeltaByPost] = useState<Record<string, CountsMap>>({});
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const postId = postData.id;
+  const isPostOnPrompt = prompt?.posted_id === postId;
+
+  const actionsBottomSheet = useMemo(
+    () =>
+      isPostOnPrompt
+        ? [{ label: 'Elimina', onPress: showModalMetodo }]
+        : [],
+    [isPostOnPrompt, showModalMetodo]
+  );
+
 
   // Derivati memo
   const baseCounts = useMemo(() => toCountsMap(reactions), [reactions]);
@@ -135,11 +171,6 @@ const FeedPost = ({ post }: FeedPostProps) => {
           return { ...rc, [postIdParam]: updated };
         });
 
-        if (next) {
-          AccessibilityInfo.announceForAccessibility?.(t('reaction_selected', { reaction: next }));
-        } else {
-          AccessibilityInfo.announceForAccessibility?.(t('reaction_cleared'));
-        }
 
         return { ...prev, [postIdParam]: next };
       });
@@ -147,93 +178,123 @@ const FeedPost = ({ post }: FeedPostProps) => {
     [t]
   );
 
+
   return (
-    <GestureDetector gesture={composed}>
-      <Card elevation={0} style={styles.card}>
+    <>
+      <GestureDetector gesture={composed}>
+        <Card elevation={0} style={styles.card}>
 
-        <Card.Title
-          title={
-            <View>
-              <Text variant="labelLarge">{`@${author.username}`}</Text>
-              <Text variant="labelSmall" style={styles.locationText}>{location}</Text>
-            </View>
-          }
-          titleVariant="titleMedium"
-          left={(props) => <Avatar.Image {...props} size={30} source={avatarSource} />}
-          leftStyle={{ marginRight: 0, marginLeft: 0 }}
-          right={(props) => (
-            <IconButton
-              {...props}
-              icon="dots-vertical"
-              size={28}
-              style={{ marginRight: 8 }}
-            />
-          )}
-        />
-
-        <View style={styles.imageWrapper}>
-          {!imgLoaded && <View style={styles.imageSkeleton} />}
-          <Animated.View style={[animatedStyle]}>
-            <ExpoImage
-              source={imageSource}
-              style={[styles.image]}
-              contentFit="cover"
-              transition={200}
-              cachePolicy="disk"
-              onLoadStart={() => setImgLoaded(false)}
-              onLoadEnd={() => setImgLoaded(true)}
-            />
-          </Animated.View>
-
-        </View>
-
-        <Card.Actions  style={styles.content}>
-          <View style={styles.statsRow}>
-            {/* Cuore */}
-            <View style={styles.stat}>
-              <ToggleButton
-                icon="heart"
-                value="cuore"
-                iconColor={currentSelected === 'cuore' ? 'red' : undefined}
-                onPress={() => handleChangeReaction(postId, 'cuore')}
-                style={styles.iconBtn}
-                rippleColor="transparent"
-                accessibilityLabel={t('react_heart')}
+          <Card.Title
+            title={
+              <View>
+                <Text variant="labelLarge">{`@${author.username}`}</Text>
+                <Text variant="labelSmall" style={styles.locationText}>{location}</Text>
+              </View>
+            }
+            titleVariant="titleMedium"
+            left={(props) => <Avatar.Image {...props} size={30} source={avatarSource} />}
+            leftStyle={{ marginRight: 0, marginLeft: 0 }}
+            right={(props) => (
+              <IconButton
+                {...props}
+                onPress={open}
+                icon="dots-vertical"
+                size={28}
+                style={{ marginRight: 8 }}
               />
-              <Text style={styles.statText}>{displayedCounts.cuore}</Text>
-            </View>
+            )}
+          />
 
-            {/* Pollice su */}
-            <View style={styles.stat}>
-              <ToggleButton
-                icon="thumb-up"
-                value="pollice_su"
-                iconColor={currentSelected === 'pollice_su' ? 'rgb(41, 41, 226)' : undefined}
-                onPress={() => handleChangeReaction(postId, 'pollice_su')}
-                style={styles.iconBtn}
-                rippleColor="transparent"
-                accessibilityLabel={t('react_thumb_up')}
+          <View style={styles.imageWrapper}>
+            {!imgLoaded && <View style={styles.imageSkeleton} />}
+            <Animated.View style={[animatedStyle]}>
+              <ExpoImage
+                source={imageSource}
+                style={[styles.image]}
+                contentFit="cover"
+                transition={200}
+                cachePolicy="disk"
+                onLoadStart={() => setImgLoaded(false)}
+                onLoadEnd={() => setImgLoaded(true)}
               />
-              <Text style={styles.statText}>{displayedCounts.pollice_su}</Text>
-            </View>
+            </Animated.View>
 
-            {/* Pollice giù */}
-            <View style={styles.stat}>
-              <ToggleButton
-                icon="thumb-down"
-                value="pollice_giu"
-                iconColor={currentSelected === 'pollice_giu' ? 'rgba(102, 42, 42, 0.986)' : undefined}
-                onPress={() => handleChangeReaction(postId, 'pollice_giu')}
-                style={styles.iconBtn}
-                rippleColor="transparent"
-                accessibilityLabel={t('react_thumb_down')}
-              />
-              <Text style={styles.statText}>{displayedCounts.pollice_giu}</Text>
-            </View>
           </View>
-        </Card.Actions>
-      </Card>
-    </GestureDetector>
+
+          <Card.Actions style={styles.content}>
+            <View style={styles.statsRow}>
+              {/* Cuore */}
+              <View style={styles.stat}>
+                <ToggleButton
+                  icon="heart"
+                  value="cuore"
+                  iconColor={currentSelected === 'cuore' ? 'red' : undefined}
+                  onPress={() => handleChangeReaction(postId, 'cuore')}
+                  style={styles.iconBtn}
+                  rippleColor="transparent"
+                />
+                <Text style={styles.statText}>{displayedCounts.cuore}</Text>
+              </View>
+
+              {/* Pollice su */}
+              <View style={styles.stat}>
+                <ToggleButton
+                  icon="thumb-up"
+                  value="pollice_su"
+                  iconColor={currentSelected === 'pollice_su' ? 'rgb(41, 41, 226)' : undefined}
+                  onPress={() => handleChangeReaction(postId, 'pollice_su')}
+                  style={styles.iconBtn}
+                  rippleColor="transparent"
+                />
+                <Text style={styles.statText}>{displayedCounts.pollice_su}</Text>
+              </View>
+
+              {/* Pollice giù */}
+              <View style={styles.stat}>
+                <ToggleButton
+                  icon="thumb-down"
+                  value="pollice_giu"
+                  iconColor={currentSelected === 'pollice_giu' ? 'rgba(102, 42, 42, 0.986)' : undefined}
+                  onPress={() => handleChangeReaction(postId, 'pollice_giu')}
+                  style={styles.iconBtn}
+                  rippleColor="transparent"
+                />
+                <Text style={styles.statText}>{displayedCounts.pollice_giu}</Text>
+              </View>
+            </View>
+          </Card.Actions>
+        </Card>
+      </GestureDetector>
+
+
+      <BottomSheetGeneral
+        ref={sheet.ref}
+        snapPoints={['50%']} // opzionale
+        actions={actionsBottomSheet}
+        onClose={() => {
+          // cleanup/log
+        }}
+      />
+
+      <Portal>
+        <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={containerStyle}>
+          <Text variant="titleMedium" style={{ marginBottom: 20 }}>{t('are_you_sure_delete_post')}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+
+            <Button mode="contained"
+              disabled={isPending}
+              onPress={() => {
+                if (post) {
+                  deletePost(post.post.id);
+                  hideModal();
+                }
+              }} loading={isPending}>
+              {t('yes_delete')}
+            </Button>
+          </View>
+        </Modal>
+      </Portal>
+    </>
 
   );
 };

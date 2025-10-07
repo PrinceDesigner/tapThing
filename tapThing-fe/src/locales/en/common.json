@@ -72,5 +72,7 @@
   "your_latest_post": "Your latest post",
   "delete_post": "Delete Post",
   "are_you_sure_delete_post": "Are you sure you want to delete this post?",
-  "yes_delete": "Yes, delete"
+  "yes_delete": "Yes, delete",
+  "POST_DELETE_ERROR": "Error deleting the post.",
+  "POST_NOT_FOUND_OR_NOT_YOURS": "Post not found or you are not the owner."
 }

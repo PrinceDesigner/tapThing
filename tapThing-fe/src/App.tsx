@@ -29,6 +29,7 @@ import { GlobalLoader } from './components/ui/GlobalLoader';
 import { GlobalSnackbar } from './components/ui/GlobalSnackbar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppState } from 'react-native';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 function AppContent() {
   const [i18nReady, setI18nReady] = useState(false);
@@ -146,10 +147,12 @@ export default function App() {
   return (
     <GestureHandlerRootView>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <AppContent />
-        </ThemeProvider>
-        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+        <BottomSheetModalProvider>
+          <ThemeProvider>
+            <AppContent />
+          </ThemeProvider>
+          {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+        </BottomSheetModalProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );

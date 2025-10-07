@@ -72,5 +72,7 @@
   "your_latest_post": "Il tuo ultimo post",
   "delete_post": "Elimina post",
   "are_you_sure_delete_post": "Sei sicuro di voler eliminare questo post?",
-  "yes_delete": "Sì, elimina"
+  "yes_delete": "Sì, elimina",
+  "POST_DELETE_ERROR": "Errore durante l'eliminazione del post.",
+  "POST_NOT_FOUND_OR_NOT_YOURS": "Post non trovato o non sei il proprietario."
 }

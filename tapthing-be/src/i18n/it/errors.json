@@ -9,5 +9,6 @@
     "PROMPT_ERROR_FETCH": "Errore durante il recupero dei prompt.",
     "POST_CREATE_ERROR": "Errore durante la creazione del post.",
     "POSTS_FETCH_ERROR": "Errore durante il recupero dei post.",
-    "POST_DELETE_ERROR": "Errore durante l'eliminazione del post."
+    "POST_DELETE_ERROR": "Errore durante l'eliminazione del post.",
+    "POST_NOT_FOUND_OR_NOT_YOURS": "Post non trovato o non sei il proprietario."
 }
