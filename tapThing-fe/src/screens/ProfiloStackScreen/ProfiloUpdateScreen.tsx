@@ -21,6 +21,8 @@ import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthClienteStore } from '@/store/auth/AuthClienteStore';
 import { uploadImageAndGetUrl } from '@/api/supabase/uploadphoto';
+import { usePostQuery } from '@/hook/post/postQuery/postQuery';
+import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
 
 
 const ProfiloUpdateScreen = () => {
@@ -33,9 +35,7 @@ const ProfiloUpdateScreen = () => {
 
   // image
   const [asset, setAsset] = useState<null | { uri: string; width?: number; height?: number }>(null);
-
   const userId = useAuthClienteStore((s) => s.userId); // { id: string } 
-
 
   // ----- Stato locale del form (inizializzato dai dati reali) -----
   const profile = useUserStore((s) => s.profile);
@@ -47,6 +47,12 @@ const ProfiloUpdateScreen = () => {
   const [cognome, setCognome] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+
+  const { prompt } = useActivePrompt();
+
+  const { post, patchAuthorOptimistic } = usePostQuery(prompt?.posted_id || '');
+
+
 
 
   // Quando lo store è pronto o cambia il profilo, popola i campi
@@ -117,6 +123,9 @@ const ProfiloUpdateScreen = () => {
       };
 
       await updateCurrentUser(patch);
+      patchAuthorOptimistic({ username: patch.username, avatar_url: patch.avatar_url });
+
+      // Aggiorna lo store locale
       updateProfile(patch);
 
       // sync locale: se hai appena caricato un file, rendilo l’avatar di default

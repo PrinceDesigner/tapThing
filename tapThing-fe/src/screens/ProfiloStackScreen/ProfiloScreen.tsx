@@ -6,12 +6,9 @@ import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
-import { Text, Button, useTheme, ActivityIndicator, Portal, Modal } from 'react-native-paper';
+import { Text, Button } from 'react-native-paper';
 
 import FeedPost from '@/components/feed/feedPost';
-import { BottomSheetGeneral } from '@/components/bottomSheetGeneral/BottomSheetGeneral';
-import { useBottomSheetGeneral } from '@/hook/useBottomSheetGeneral';
 
 const ProfiloScreen = () => {
   const { t } = useTranslation();

@@ -1,5 +1,5 @@
 
-import { PostDetail, ResponsePostPaginated } from '@/api/posts/model/post.model';
+import { Author, PostDetail, ResponsePostPaginated } from '@/api/posts/model/post.model';
 import { deletePost, getPostById, getPosts } from '@/api/posts/post.service';
 import { useUpdatePromptCache } from '@/hook/prompt/useHookPrompts';
 import { useLoadingStore } from '@/store/loaderStore/loaderGlobalStore';
@@ -7,8 +7,10 @@ import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import { InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
+// dentro usePostQuery.ts
 export function usePostQuery(id: string) {
   const qc = useQueryClient();
+
   const query = useQuery<PostDetail | null>({
     queryKey: ['post', id],
     queryFn: () => getPostById(id),
@@ -17,7 +19,20 @@ export function usePostQuery(id: string) {
     enabled: !!id,
     retry: 1,
   });
+
   const post = query.data ?? null;
+
+  // --- OPTIMISTIC PATCH SOLO PER QUESTO POST ---
+  const patchAuthorOptimistic = (patch: Partial<Author>) => {
+    qc.setQueryData<PostDetail | null>(['post', id], old => {
+      if (!old) return old;
+      return {
+        ...old,
+        author: { ...old.author, ...patch },
+      };
+    });
+  };
+
   return {
     post,
     isLoading: query.isLoading || query.isFetching,
@@ -25,10 +40,11 @@ export function usePostQuery(id: string) {
     hasPost: !!post,
     // utility:
     refetchPost: query.refetch,
-    invalidatePost: () =>
-      qc.invalidateQueries({ queryKey: ['post', id] }),
+    invalidatePost: () => qc.invalidateQueries({ queryKey: ['post', id] }),
+    patchAuthorOptimistic,
   };
 }
+
 
 export function usePostInfinite(
   prompt_id?: string,
