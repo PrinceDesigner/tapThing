@@ -11,6 +11,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 
 import { Text, Button, Card, Icon, useTheme, Avatar, ToggleButton, ActivityIndicator, IconButton, Portal, Modal } from 'react-native-paper';
+import FeedPost from '@/components/feed/feedPost';
 
 const ProfiloScreen = () => {
   const { t } = useTranslation();
@@ -38,15 +39,11 @@ const ProfiloScreen = () => {
     bottomSheetRef.current?.close();
   }
 
-  
+
 
   const handleEditProfile = () => {
     nav.navigate('ProfiloUpdateScreen');
   };
-  // preferisci la località del post
-  const location = post?.post.city && post?.post.country
-    ? `${post.post.city}, ${post.post.country}`
-    : t('unknown_location');
 
   if (isPending) {
     return (
@@ -83,69 +80,7 @@ const ProfiloScreen = () => {
         {post && (
           <View style={{ marginHorizontal: 25 }}>
             <Text variant="labelLarge" style={{ textAlign: 'center', marginVertical: 10 }}>{promptTitle}</Text>
-            <Card style={styles.card}>
-              <Card.Title
-                title={
-                  <View>
-                    <Text variant="labelLarge">{`@${post.author.username}`}</Text>
-                    <Text variant="labelSmall" style={styles.locationText}>{location}</Text>
-                  </View>
-                }
-                left={(props) => <Avatar.Image {...props} size={40} source={{ uri: post.author.avatar_url }} />}
-                right={(props) => (
-                  <IconButton
-                    {...props}
-                    icon="dots-vertical"
-                    size={28}
-                    onPress={() => bottomSheetRef.current?.expand()}
-                    style={{ marginRight: 8 }}
-                  />
-                )}
-                style={{ paddingBottom: 0 }}
-              />
-
-
-              <TouchableOpacity activeOpacity={0.8}>
-                <Image source={{ uri: post.post.storage_path }} style={styles.image} />
-              </TouchableOpacity>
-
-              <View style={styles.content}>
-                <View style={styles.statsRow}>
-                  {/* Cuore */}
-                  <View style={styles.stat}>
-                    <ToggleButton
-                      icon="heart"
-                      value="cuore"
-                      style={styles.iconBtn}
-                      rippleColor="transparent"
-                    />
-                    {/* <Text style={styles.statText}>{counts.cuore}</Text> */}
-                  </View>
-
-                  {/* Pollice su */}
-                  <View style={styles.stat}>
-                    <ToggleButton
-                      icon="thumb-up"
-                      value="pollice_su"
-                      style={styles.iconBtn}
-                      rippleColor="transparent"
-                    />
-                    {/* <Text style={styles.statText}>{counts.pollice_su}</Text> */}
-                  </View>
-
-                  {/* Pollice giù */}
-                  <View style={styles.stat}>
-                    <ToggleButton
-                      icon="thumb-down"
-                      value="pollice_giu"
-                      style={styles.iconBtn}
-                      rippleColor="transparent"
-                    />
-                    {/* <Text style={styles.statText}>{counts.pollice_giu}</Text> */}
-                  </View>
-                </View>
-              </View>
-            </Card>
+            <FeedPost post={post} />
           </View>
 
         )}

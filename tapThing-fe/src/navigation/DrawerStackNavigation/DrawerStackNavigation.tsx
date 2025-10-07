@@ -16,6 +16,7 @@ import LoadFeedOrInsertScreen from '@/screens/LoadFeedOrInsert/LoadFeedOrInsertS
 import i18n, { setAppLanguage } from '@/i18n';
 import HowToScreen from '@/screens/HowToScren/HowToScreen';
 import ProfiloStackScreensNavigation from '../ProfiloStacNavigator/ProfiloStackNavigator';
+import { useQueryClient } from '@tanstack/react-query';
 
 
 const Drawer = createDrawerNavigator();
@@ -72,6 +73,8 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   const isDark = theme.dark;
   const { toggleTheme } = useThemeContext();
   const { t } = useTranslation();
+  const qc = useQueryClient();
+
 
   const { setLoading } = useLoadingStore();
   const { show } = useSnackbarStore();
@@ -81,6 +84,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
     setLoading(true);
     try {
       await logout();
+      qc.clear();
     } catch (error) {
       console.error('Logout error:', error);
       show(t('logout_error'), 'error');

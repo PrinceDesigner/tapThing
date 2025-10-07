@@ -1,29 +1,19 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef, use } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, NativeSyntheticEvent, NativeScrollEvent, RefreshControl } from 'react-native';
-import { Card, ToggleButton, Avatar, useTheme, Text, Icon, ActivityIndicator, Button, FAB } from 'react-native-paper';
-import ImageViewing from 'react-native-image-viewing';
-import { FlashList } from '@shopify/flash-list';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { View, StyleSheet, NativeSyntheticEvent, NativeScrollEvent, RefreshControl } from 'react-native';
+import { useTheme, Text, ActivityIndicator, Button, FAB } from 'react-native-paper';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import type { FlashList as FlashListType } from '@shopify/flash-list';
 import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
-import { PostDetail, Reactions } from '@/api/posts/model/post.model';
+import { PostDetail } from '@/api/posts/model/post.model';
 import { usePostInfinite } from '@/hook/post/postQuery/postQuery';
 import { useTranslation } from 'react-i18next';
+import FeedPost from '@/components/feed/feedPost';
+import { Image } from 'expo-image';
 
-// ======== Mappa helper ========
-type Shortcode = 'cuore' | 'pollice_su' | 'pollice_giu';
-type CountsMap = Record<Shortcode, number>;
+const SCROLL_TO_TOP_THRESHOLD = 350;
+const PREFETCH_AHEAD = 12;
+const INITIAL_PREFETCH = 24;
 
-const toCountsMap = (r: Reactions): CountsMap => {
-  const base: CountsMap = { cuore: 0, pollice_su: 0, pollice_giu: 0 };
-  r.byEmoji.forEach(b => {
-    base[b.shortcode] = b.count ?? 0;
-  });
-  return base;
-};
-
-const SCROLL_TO_TOP_THRESHOLD = 350; // px di scroll dopo cui mostrare il FAB
-
-
-// ======== UI Component ========
 const FeedScreen: React.FC = () => {
   const theme = useTheme();
   const { prompt } = useActivePrompt();
@@ -40,159 +30,91 @@ const FeedScreen: React.FC = () => {
     isRefetching,
   } = usePostInfinite(prompt?.prompt_id, { pageSize: 10 });
 
-
-  const MOCK_POST_DETAILS = data?.pages.flatMap((p) => p.posts) ?? [];
-
-  // stato: reazione selezionata per post
-  const [selectedReaction, setSelectedReaction] = useState<Record<string, Shortcode | null>>({});
-
-  // stato: conteggi per post (shortcode -> count)
-  const [countsByPost, setCountsByPost] = useState<Record<string, CountsMap>>(
-    () =>
-      Object.fromEntries(
-        MOCK_POST_DETAILS.map(pd => [pd.post.id, toCountsMap(pd.reactions)])
-      )
+  const posts = useMemo<PostDetail[]>(
+    () => data?.pages.flatMap((p) => p.posts) ?? [],
+    [data]
   );
-  
-  // image viewer
-  const [viewerVisible, setViewerVisible] = useState(false);
-  const [viewerIndex, setViewerIndex] = useState(0);
-
-
-  const imagesForViewer = useMemo(
-    () => MOCK_POST_DETAILS.map(pd => ({ uri: pd.post.storage_path })),
-    []
-  );
-
-  // handler scrooll
 
   type FlashListRef = React.ComponentRef<typeof FlashList<PostDetail>>;
 
   const listRef = useRef<FlashListRef>(null);
-
+  // FAB scroll-to-top
   const [showFab, setShowFab] = useState(false);
-
-
+  const lastFabStateRef = useRef(false);
   const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
-    // evita setState continui: aggiorna solo quando cambia "zona"
-    setShowFab(prev => (y > SCROLL_TO_TOP_THRESHOLD ? (prev || true) : (prev && false)));
+    const next = y > SCROLL_TO_TOP_THRESHOLD;
+    if (next !== lastFabStateRef.current) {
+      lastFabStateRef.current = next;
+      setShowFab(next);
+    }
   }, []);
 
   const scrollToTop = useCallback(() => {
     listRef.current?.scrollToOffset({ animated: true, offset: 0 });
   }, []);
 
-
-
-  const handleChangeReaction = useCallback((postId: string, nextRaw: Shortcode | null) => {
-    setSelectedReaction(prev => {
-      const prevReaction = prev[postId] ?? null;
-      const toggledOff = prevReaction !== null && prevReaction === nextRaw;
-      const next = toggledOff ? null : (nextRaw as Shortcode | null);
-
-      setCountsByPost(rc => {
-        const current = rc[postId] ?? { cuore: 0, pollice_su: 0, pollice_giu: 0 };
-        const updated: CountsMap = { ...current };
-
-        if (prevReaction) {
-          updated[prevReaction] = Math.max(0, updated[prevReaction] - 1);
-        }
-        if (next && next !== prevReaction) {
-          updated[next] = (updated[next] ?? 0) + 1;
-        }
-        return { ...rc, [postId]: updated };
-      });
-
-      return { ...prev, [postId]: next };
-    });
+  // ---- PREFETCH HELPERS ----
+  const prefetched = useRef<Set<string>>(new Set());
+  const doPrefetch = useCallback(async (urls: string[]) => {
+    const uniq = urls
+      .map((u) => (u ?? '').trim())
+      .filter((u) => u && !prefetched.current.has(u));
+    if (!uniq.length) return;
+    uniq.forEach((u) => prefetched.current.add(u));
+    try {
+      await Image.prefetch(uniq, 'disk'); // coerente con cachePolicy="disk"
+    } catch { }
   }, []);
 
-  const openViewerAt = useCallback((index: number) => {
-    setViewerIndex(index);
-    setViewerVisible(true);
-  }, []);
+  // Prefetch iniziale
+  useEffect(() => {
+    if (!posts.length) return;
+    const initial = posts.slice(0, INITIAL_PREFETCH).map((p) => p.post.storage_path);
+    doPrefetch(initial);
+  }, [posts, doPrefetch]);
+
+  // Viewability (prefetch “just-in-time”)
+  const lastEndRef = useRef(-1);
+
+  // IMPORTANTISSIMO: mantieni stabile ref/callback come richiede RN
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 10, // considera visibile se >=10%
+    // minimumViewTime: 50,          // opzionale
+  }).current;
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
+      if (!viewableItems?.length) return;
+      const indices = viewableItems
+        .map(v => (v.index ?? -1))
+        .filter(i => i >= 0);
+      if (!indices.length) return;
+
+      const end = Math.max(...indices);
+      if (end <= lastEndRef.current) return;
+      lastEndRef.current = end;
+
+      const start = Math.min(end + 1, posts.length);
+      const stop = Math.min(end + PREFETCH_AHEAD, posts.length - 1);
+      if (start > stop) return;
+
+      const aheadUrls = posts.slice(start, stop + 1).map(p => p.post.storage_path);
+      doPrefetch(aheadUrls);
+    }
+  ).current;
+
+  // --- renderItem e keyExtractor memoizzati
+  const renderItem = useCallback<ListRenderItem<PostDetail>>(
+    ({ item }) => {
+      return <FeedPost post={item} />;
+    },
+    []
+  );
 
   const keyExtractor = useCallback((item: PostDetail) => item.post.id, []);
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: PostDetail; index: number }) => {
-
-      const postId = item.post.id;
-      const selected = selectedReaction[postId] ?? null;
-      const counts = countsByPost[postId] ?? { cuore: 0, pollice_su: 0, pollice_giu: 0 };
-
-      // preferisci la località del post
-      const location = item.post.city && item.post.country
-        ? `${item.post.city}, ${item.post.country}`
-        : t('unknown_location');
-
-      return (
-        <Card style={styles.card}>
-          <Card.Title
-            title={
-              <View style={styles.locationRow}>
-                <Text variant="labelLarge">{`@${item.author.username}`}</Text>
-                <Text variant="labelSmall" style={styles.locationText}>{location}</Text>
-              </View>
-            }
-            titleVariant="titleMedium"
-            left={(props) => <Avatar.Image {...props} size={40} source={{ uri: item.author.avatar_url }} />}
-          />
-
-          <TouchableOpacity activeOpacity={0.8} onPress={() => openViewerAt(index)}>
-            <Image source={{ uri: item.post.storage_path }} style={styles.image} />
-          </TouchableOpacity>
-
-          <View style={styles.content}>
-
-            <View style={styles.statsRow}>
-              {/* Cuore */}
-              <View style={styles.stat}>
-                <ToggleButton
-                  icon="heart"
-                  value="cuore"
-                  iconColor={selected === 'cuore' ? 'red' : undefined}
-                  onPress={() => handleChangeReaction(postId, 'cuore')}
-                  style={styles.iconBtn}
-                  rippleColor="transparent"
-                />
-                <Text style={styles.statText}>{counts.cuore}</Text>
-              </View>
-
-              {/* Pollice su */}
-              <View style={styles.stat}>
-                <ToggleButton
-                  icon="thumb-up"
-                  value="pollice_su"
-                  iconColor={selected === 'pollice_su' ? 'rgb(41, 41, 226)' : undefined}
-                  onPress={() => handleChangeReaction(postId, 'pollice_su')}
-                  style={styles.iconBtn}
-                  rippleColor="transparent"
-                />
-                <Text style={styles.statText}>{counts.pollice_su}</Text>
-              </View>
-
-              {/* Pollice giù */}
-              <View style={styles.stat}>
-                <ToggleButton
-                  icon="thumb-down"
-                  value="pollice_giu"
-                  iconColor={selected === 'pollice_giu' ? 'rgba(102, 42, 42, 0.986)' : undefined}
-                  onPress={() => handleChangeReaction(postId, 'pollice_giu')}
-                  style={styles.iconBtn}
-                  rippleColor="transparent"
-                />
-                <Text style={styles.statText}>{counts.pollice_giu}</Text>
-              </View>
-            </View>
-          </View>
-        </Card>
-      );
-    },
-    [handleChangeReaction, openViewerAt, countsByPost, selectedReaction, theme.colors.primary]
-  );
-
+  // --- loading / error
   if (isLoading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -214,21 +136,28 @@ const FeedScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* header */}
       <View style={{
         padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: theme.colors.outline,
         backgroundColor: theme.colors.surface,
       }}>
-        <Text variant="titleMedium" style={{ letterSpacing: 0.2, color: theme.colors.onSurface, fontWeight: '700', textAlign: 'center' }}>
+        <Text
+          variant="titleMedium"
+          style={{
+            letterSpacing: 0.2,
+            color: theme.colors.onSurface,
+            fontWeight: '700',
+            textAlign: 'center',
+          }}
+        >
           {prompt?.title}
         </Text>
       </View>
 
       <FlashList
         ref={listRef}
-        data={MOCK_POST_DETAILS}
+        data={posts}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
@@ -249,17 +178,18 @@ const FeedScreen: React.FC = () => {
         }
         ListEmptyComponent={
           !isLoading ? (
-            <View style={{ paddingVertical: 32, alignItems: "center" }}>
-              <Text>No posts available</Text>
+            <View style={{ paddingVertical: 32, alignItems: 'center' }}>
+              <Text>{t('no_posts_available') ?? 'No posts available'}</Text>
             </View>
           ) : null
         }
-        removeClippedSubviews
+        // // Viewability API (supportata): perfetta per prefetch e impression
+        // onViewableItemsChanged={onViewableItemsChanged}
+        // viewabilityConfig={viewabilityConfig}
         scrollEventThrottle={16}
-        onScroll={handleScroll} // <— aggiunto
+        onScroll={handleScroll}
       />
 
-      {/* FAB scroll-to-top */}
       {showFab && (
         <FAB
           icon="arrow-up"
@@ -267,16 +197,9 @@ const FeedScreen: React.FC = () => {
           style={styles.fab}
           mode="elevated"
           size="medium"
-          accessibilityLabel="Torna all'inizio"
+          accessibilityLabel={t('back_to_top') ?? "Torna all'inizio"}
         />
       )}
-
-      <ImageViewing
-        images={imagesForViewer}
-        imageIndex={viewerIndex}
-        visible={viewerVisible}
-        onRequestClose={() => setViewerVisible(false)}
-      />
     </View>
   );
 };
@@ -284,51 +207,7 @@ const FeedScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   listContent: {
-    padding: 12,
     paddingBottom: 24,
-  },
-  card: {
-    marginBottom: 14,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  image: {
-    width: '100%',
-    aspectRatio: 4 / 5,
-    backgroundColor: '#eee',
-  },
-  content: {
-    paddingHorizontal: 12,
-    paddingVertical: 15,
-  },
-  locationRow: {
-    // flexDirection: 'row',
-    // alignItems: 'center',
-    // gap: 6,
-    // marginVertical: 10,
-  },
-  locationText: { opacity: 0.8 },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 18,
-  },
-  stat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  iconBtn: {
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-    borderRadius: 999,
-    width: 34,
-    height: 34,
-    justifyContent: 'center',
-  },
-  statText: {
-    fontSize: 14,
-    opacity: 0.75,
   },
   fab: {
     position: 'absolute',
