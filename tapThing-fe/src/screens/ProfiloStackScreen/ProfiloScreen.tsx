@@ -53,7 +53,7 @@ const ProfiloScreen = () => {
         {post && (
           <View style={{ marginHorizontal: 25 }}>
             <Text variant="labelLarge" style={{ textAlign: 'center', marginVertical: 10 }}>{promptTitle}</Text>
-            <FeedPost post={post} />
+            <FeedPost post={post} currentPrompt={prompt} />
           </View>
 
         )}

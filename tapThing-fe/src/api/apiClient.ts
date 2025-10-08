@@ -5,8 +5,17 @@ import i18n from '@/i18n';
 import { queryClient } from '@/libs/tanstackQuery.client';
 import { PROMPT_KEYS } from '@/hook/prompt/prompt.keys';
 import { logout } from './supabase/supabase.api';
+import { Prompt } from './prompt/model/prompt.model';
+import { getPromptByIdUser } from './prompt/prompt.service';
 
 const baseUrl = process.env.EXPO_PUBLIC_BFF_URL || 'http://localhost:3000/';
+
+
+
+function getPromptIdFromCache(): string | null {
+  const data = queryClient.getQueryData<Prompt | null>(PROMPT_KEYS.all);
+  return data?.prompt_id ?? null;
+}
 
 export const apiClient = {
   get: async <T = any>(url: string): Promise<T> => request<T>('GET', url),
@@ -38,6 +47,10 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json';
   }
+
+  // >>> Qui inseriamo il prompt_id se presente
+  const promptId = getPromptIdFromCache();
+  if (promptId) headers['x-prompt-id'] = promptId;
 
   // opzionale: timeout
   const controller = new AbortController();
@@ -80,7 +93,8 @@ async function request<T = any>(method: string, url: string, body?: any): Promis
           // Gestione PROMPT_EXPIRED: invalidazione/refresh sincroni e poi throw
           if (code === 'PROMPT_EXPIRED') {
 
-            console.log('API Client: PROMPT_EXPIRED detected, invalidating prompt queries...', { traceId });
+            queryClient.setQueryData(PROMPT_KEYS.all, null);
+
             // meglio invalidare, lasciare che i componenti refetchino in autonomia
             await queryClient.invalidateQueries({ queryKey: PROMPT_KEYS.all });
             // se vuoi forzare il refetch subito (blocking), usa:

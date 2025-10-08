@@ -7,7 +7,7 @@ import { QueryCache, QueryClient } from "@tanstack/react-query";
       queries: {
         retry: 1,
         staleTime: 30_000,
-        gcTime: 5 * 60_000,
+        gcTime: 5 * 60_000, 
         refetchOnReconnect: true,
         refetchOnMount: false,
         refetchOnWindowFocus: false,

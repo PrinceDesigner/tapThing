@@ -8,30 +8,19 @@ import { InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient }
 import { useTranslation } from 'react-i18next';
 
 // dentro usePostQuery.ts
-export function usePostQuery(id: string, prompt_id: string) {
+export function usePostQuery(idPost: string, prompt_id: string) {
   const qc = useQueryClient();
 
   const query = useQuery<PostDetail | null>({
-    queryKey: ['post', id],
-    queryFn: () => getPostById(id, prompt_id),
+    queryKey: ['post', idPost, prompt_id],
+    queryFn: () => getPostById(idPost, prompt_id),
     staleTime: 30_000,
     refetchOnWindowFocus: false,
-    enabled: !!id,
+    enabled: !!idPost && !!prompt_id,
     retry: 1,
   });
 
   const post = query.data ?? null;
-
-  // --- OPTIMISTIC PATCH SOLO PER QUESTO POST ---
-  const patchAuthorOptimistic = (patch: Partial<Author>) => {
-    qc.setQueryData<PostDetail | null>(['post', id], old => {
-      if (!old) return old;
-      return {
-        ...old,
-        author: { ...old.author, ...patch },
-      };
-    });
-  };
 
   return {
     post,
@@ -40,10 +29,23 @@ export function usePostQuery(id: string, prompt_id: string) {
     hasPost: !!post,
     // utility:
     refetchPost: query.refetch,
-    invalidatePost: () => qc.invalidateQueries({ queryKey: ['post', id] }),
-    patchAuthorOptimistic,
   };
 }
+
+// usePostCacheActions.ts
+export function usePostCacheActions() {
+  const qc = useQueryClient();
+
+  const patchAuthorOptimistic = (id: string, patch: Partial<Author>, prompt_id: string) => {
+    qc.setQueryData<PostDetail | null>(['post', id, prompt_id], old => {
+      if (!old) return old;
+      return { ...old, author: { ...old.author, ...patch } };
+    });
+  };
+
+  return { patchAuthorOptimistic };
+}
+
 
 
 export function usePostInfinite(

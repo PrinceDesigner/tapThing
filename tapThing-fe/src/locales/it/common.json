@@ -80,5 +80,8 @@
   "PROMPT_ERROR_FETCH": "Errore durante il recupero dei prompt.",
   "UNKNOWN_ERROR": "Errore sconosciuto.",
   "POST_CREATE_ERROR": "Errore durante la creazione del post.",
-  "PROMPT_EXPIRED": "Lo stimolo è scaduto."
+  "PROMPT_EXPIRED": "Lo stimolo è scaduto.",
+  "EXPIRES_IN": "Scade tra",
+  "EXPIRED_AT": "Stimolo scaduto"
+
 }

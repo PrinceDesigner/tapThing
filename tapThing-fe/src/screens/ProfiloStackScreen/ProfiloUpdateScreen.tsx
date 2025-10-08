@@ -21,7 +21,7 @@ import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthClienteStore } from '@/store/auth/AuthClienteStore';
 import { uploadImageAndGetUrl } from '@/api/supabase/uploadphoto';
-import { usePostQuery } from '@/hook/post/postQuery/postQuery';
+import { usePostCacheActions, usePostQuery } from '@/hook/post/postQuery/postQuery';
 import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
 
 
@@ -49,8 +49,7 @@ const ProfiloUpdateScreen = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
 
   const { prompt } = useActivePrompt();
-
-  const { post, patchAuthorOptimistic } = usePostQuery(prompt?.posted_id || '', prompt?.prompt_id || '');
+  const { patchAuthorOptimistic } = usePostCacheActions();
 
 
 
@@ -123,7 +122,7 @@ const ProfiloUpdateScreen = () => {
       };
 
       await updateCurrentUser(patch);
-      patchAuthorOptimistic({ username: patch.username, avatar_url: patch.avatar_url });
+      patchAuthorOptimistic(prompt?.posted_id || '', { username: patch.username, avatar_url: patch.avatar_url }, prompt?.prompt_id || '');
 
       // Aggiorna lo store locale
       updateProfile(patch);

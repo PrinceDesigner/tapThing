@@ -9,6 +9,7 @@ import { usePostInfinite } from '@/hook/post/postQuery/postQuery';
 import { useTranslation } from 'react-i18next';
 import FeedPost from '@/components/feed/feedPost';
 import { Image } from 'expo-image';
+import { PromptCountdown } from '@/components/promptCountDown/PromptCountDown';
 
 const SCROLL_TO_TOP_THRESHOLD = 350;
 const PREFETCH_AHEAD = 12;
@@ -19,6 +20,9 @@ const FeedScreen: React.FC = () => {
   const { prompt } = useActivePrompt();
   const { t } = useTranslation();
 
+  // Aggiungi controllo di coerenza
+  const promptId = prompt?.prompt_id;
+
   const {
     data,
     isLoading,
@@ -28,12 +32,20 @@ const FeedScreen: React.FC = () => {
     hasNextPage,
     refetch,
     isRefetching,
-  } = usePostInfinite(prompt?.prompt_id, { pageSize: 10 });
+  } = usePostInfinite(promptId, { pageSize: 10 });
 
   const posts = useMemo<PostDetail[]>(
     () => data?.pages.flatMap((p) => p.posts) ?? [],
     [data]
   );
+
+  // Verifica coerenza tra dati e prompt
+  const isDataConsistent = useMemo(() => {
+    if (!data?.pages?.length || !promptId) return true;
+    // Verifica che i post appartengano al prompt corrente
+    const firstPost = data.pages[0]?.posts?.[0];
+    return firstPost?.post.prompt_id === promptId;
+  }, [data, promptId]);
 
   type FlashListRef = React.ComponentRef<typeof FlashList<PostDetail>>;
 
@@ -107,9 +119,9 @@ const FeedScreen: React.FC = () => {
   // --- renderItem e keyExtractor memoizzati
   const renderItem = useCallback<ListRenderItem<PostDetail>>(
     ({ item }) => {
-      return <FeedPost post={item} />;
+      return <FeedPost post={item} currentPrompt={prompt} />;
     },
-    []
+    [prompt] // Aggiungi prompt come dipendenza
   );
 
   const keyExtractor = useCallback((item: PostDetail) => item.post.id, []);
@@ -134,6 +146,15 @@ const FeedScreen: React.FC = () => {
     );
   }
 
+  // Se i dati non sono coerenti, mostra loading
+  if (!isDataConsistent) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={{
@@ -153,6 +174,13 @@ const FeedScreen: React.FC = () => {
         >
           {prompt?.title}
         </Text>
+          <PromptCountdown 
+            endsAt={prompt!.ends_at || new Date().toISOString()}
+            totalMs={23 * 60 * 60 * 1000}
+            expiredText={t('EXPIRED_AT')}
+            labelPrefix={t('EXPIRES_IN')}
+            variant='labelSmall'
+          />
       </View>
 
       <FlashList

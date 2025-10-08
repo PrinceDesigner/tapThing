@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
+import { PromptCountdown } from '@/components/promptCountDown/PromptCountDown';
 
 export const DailyPromptStaticScreen: React.FC = () => {
   const theme = useTheme();
@@ -24,47 +25,6 @@ export const DailyPromptStaticScreen: React.FC = () => {
   // --- TIMER/COUNTDOWN ---
   // 1) prendi l'ISO di fine dal backend
   const ENDS_ISO = prompt?.ends_at || new Date().toISOString(); // es.
-
-  // (opzionale, vedi nota sotto) normalizza l'ISO a millisecondi
-  // Non serve un memo: la funzione è pura, leggera e non dipende da variabili di stato.
-  const toMillisISO = (iso: string) =>
-    iso.replace(/(\.\d{3})\d+(?=[Z+\-])/, "$1"); // lascia max 3 decimali
-
-  // 2) calcola l'epoch di scadenza UNA VOLTA
-  const expiry = useMemo(() => {
-    // Per i conti: usa direttamente UTC epoch
-    return new Date(toMillisISO(ENDS_ISO)).getTime();
-  }, [ENDS_ISO]);
-
-  // --- TIMER/COUNTDOWN ---
-  const [remaining, setRemaining] = useState<number>(() => Math.max(0, expiry - Date.now()));
-
-  useEffect(() => {
-    const tick = () => setRemaining(Math.max(0, expiry - Date.now()));
-    const id = setInterval(tick, 1000);
-    tick(); // sync immediata
-    return () => clearInterval(id);
-  }, [expiry]);
-
-  const fmt = (ms: number) => {
-    const s = Math.floor(ms / 1000);
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const ss = s % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
-  };
-
-  // Se il "totale" è sempre 23h, OK così.
-  // Se vuoi un progresso preciso senza assumere 23h,
-  // passa anche startISO dal backend e calcola total = end - start.
-  const progress = useMemo(() => {
-    const total = 23 * 60 * 60 * 1000;
-    return Math.max(0, Math.min(1, (total - remaining) / total));
-  }, [remaining]);
-
-  const isExpired = remaining === 0;
-
-
 
 
   return (
@@ -113,10 +73,13 @@ export const DailyPromptStaticScreen: React.FC = () => {
           style={[styles.footer, { borderTopColor: theme.colors.outlineVariant }]}
           edges={['bottom']}
         >
-          <Text variant="bodyMedium" style={{ fontWeight: '700' }}>
-            Scade tra {fmt(remaining)}
-          </Text>
-          <ProgressBar progress={progress} style={styles.progress} />
+          <PromptCountdown
+            endsAt={ENDS_ISO || new Date().toISOString()}
+            totalMs={23 * 60 * 60 * 1000}
+            expiredText={t('EXPIRED_AT')}
+            labelPrefix={t('EXPIRES_IN')}
+            onSecondary={false}
+          />
         </SafeAreaView>
       </View>
     </SafeAreaView>

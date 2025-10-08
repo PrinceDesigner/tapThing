@@ -31,7 +31,8 @@ export class PromptGuard implements CanActivate {
         // 1️⃣ Recupera prompt_id e has_posted (accetta header, body o query)
         const promptId =
             req.body?.prompt_id ||
-            req.query?.prompt_id;
+            req.query?.prompt_id ||
+            req.headers['x-prompt-id'];
 
 
         if (!promptId) {

@@ -20,6 +20,7 @@ import { insertPost } from "@/api/posts/post.service";
 import { useSnackbarStore } from "@/store/snackbar/snackbar.store";
 import { useActivePrompt, useUpdatePromptCache } from "@/hook/prompt/useHookPrompts";
 import { useCurrentLocation } from "@/hook/location/useCurrentLocation";
+import { PromptCountdown } from "@/components/promptCountDown/PromptCountDown";
 
 
 /**
@@ -39,7 +40,6 @@ export const InsertPhotoScreen: React.FC = () => {
     const { prompt } = useActivePrompt();
     const { setHasPostedOnPrompt, setPostedAtOnPrompt, setPostedIdOnPrompt } =
         useUpdatePromptCache();
-
 
     const { show } = useSnackbarStore();
 
@@ -141,6 +141,13 @@ export const InsertPhotoScreen: React.FC = () => {
                         >
                             {prompt?.title || ''}
                         </Text>
+                        <PromptCountdown
+                            endsAt={prompt?.ends_at || new Date().toISOString()}
+                            totalMs={23 * 60 * 60 * 1000}
+                            expiredText={t('EXPIRED_AT')}
+                            labelPrefix={t('EXPIRES_IN')}
+                            variant='labelSmall'
+                        />
                     </View>
 
                 </View>
