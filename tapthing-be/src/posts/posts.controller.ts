@@ -25,12 +25,12 @@ export class PostsController {
 
 
   @Get('/paginated/get')
-  async getPaginatedPosts(@Query() q: GetPaginatedPostsDto) {
+  async getPaginatedPosts(@Query() q: GetPaginatedPostsDto, @CurrentUser('id') user_id: string) {
     const { prompt_id, limit, cursor_id, cursor_created_at } = q;
     return this.postsService.getPaginatedPostsCursor(prompt_id, limit, {
       id: cursor_id ?? null,
       created_at: cursor_created_at ?? null,
-    });
+    }, user_id);
   }
 
   @Delete('/:id')

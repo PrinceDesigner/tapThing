@@ -1,7 +1,13 @@
+export type Emoji = 'pollice_su' | 'pollice_giu' | 'cuore'
+
 export type PostDetail = {
   post: Post
   author: Author
   reactions: Reactions
+  myReaction: {
+    hasReacted: boolean,
+    reaction: ByEmoji | null
+  }
 }
 
 export type Post = {
@@ -32,9 +38,9 @@ export type Reactions = {
 
 export type ByEmoji = {
   emoji_id: number
-  shortcode: 'pollice_su' | 'pollice_giu' | 'cuore'
-  unicode: 'pollice_su' | 'pollice_giu' | 'cuore'
-  label: 'Pollice su' | 'Pollice giù' | 'Cuore'
+  shortcode: Emoji
+  unicode: Emoji
+  label: 'pollice su' | 'pollice giu' | 'cuore'
   count: number
 }
 

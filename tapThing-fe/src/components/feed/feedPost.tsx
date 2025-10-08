@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, AccessibilityInfo, Pressable } from 'react-native';
-import { PostDetail, Reactions } from '@/api/posts/model/post.model';
+import { Emoji, PostDetail, Reactions } from '@/api/posts/model/post.model';
 import { ActivityIndicator, Avatar, Button, Card, IconButton, Modal, Portal, Text, ToggleButton, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import ImageViewing from 'react-native-image-viewing';
@@ -26,19 +26,6 @@ interface FeedPostProps {
   currentPrompt?: any; // Aggiungi prop opzionale
 }
 
-type Shortcode = 'cuore' | 'pollice_su' | 'pollice_giu';
-type CountsMap = Record<Shortcode, number>;
-
-const EMPTY_COUNTS: CountsMap = { cuore: 0, pollice_su: 0, pollice_giu: 0 };
-
-const toCountsMap = (r: Reactions): CountsMap => {
-  const base: CountsMap = { ...EMPTY_COUNTS };
-  r.byEmoji.forEach((b) => {
-    base[b.shortcode] = b.count ?? 0;
-  });
-  return base;
-};
-
 const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
 
   const theme = useTheme();
@@ -51,7 +38,6 @@ const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
 
   const { author, post: postData, reactions } = post;
   const [shareMode, setShareMode] = useState(false);
-
 
   // share
   const { SnapTarget, share, busy } = useShareSnapshot({
@@ -78,10 +64,7 @@ const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
     sheet.dismiss();
   }
 
-  const [selectedReaction, setSelectedReaction] = useState<Record<string, Shortcode | null>>({});
-  const [countsDeltaByPost, setCountsDeltaByPost] = useState<Record<string, CountsMap>>({});
   const [imgLoaded, setImgLoaded] = useState(false);
-
   const postId = postData.id;
   const isPostOnPrompt = currentPrompt?.posted_id === postId;
 
@@ -93,20 +76,7 @@ const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
     [isPostOnPrompt, showModalMetodo]
   );
 
-
   // Derivati memo
-  const baseCounts = useMemo(() => toCountsMap(reactions), [reactions]);
-
-  const delta = countsDeltaByPost[postId] ?? EMPTY_COUNTS;
-  const displayedCounts = useMemo<CountsMap>(
-    () => ({
-      cuore: baseCounts.cuore + (delta.cuore ?? 0),
-      pollice_su: baseCounts.pollice_su + (delta.pollice_su ?? 0),
-      pollice_giu: baseCounts.pollice_giu + (delta.pollice_giu ?? 0),
-    }),
-    [baseCounts, delta]
-  );
-
   const location = useMemo(() => {
     const { city, country } = postData;
     return city && country ? `${city}, ${country}` : t('unknown_location');
@@ -114,30 +84,6 @@ const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
 
   const avatarSource = useMemo(() => ({ uri: author.avatar_url || MOCK_AVATAR }), [author.avatar_url]);
   const imageSource = useMemo(() => ({ uri: postData.storage_path } as const), [postData.storage_path]);
-
-  const currentSelected = selectedReaction[postId] ?? null;
-
-  const handleChangeReaction = useCallback(
-    (postIdParam: string, nextRaw: Shortcode | null) => {
-      setSelectedReaction((prev) => {
-        const prevReaction = prev[postIdParam] ?? null;
-        const toggledOff = prevReaction !== null && prevReaction === nextRaw;
-        const next = toggledOff ? null : nextRaw;
-
-        setCountsDeltaByPost((rc) => {
-          const curr = rc[postIdParam] ?? { ...EMPTY_COUNTS };
-          const updated: CountsMap = { ...curr };
-          if (prevReaction) updated[prevReaction] = (updated[prevReaction] ?? 0) - 1;
-          if (next && next !== prevReaction) updated[next] = (updated[next] ?? 0) + 1;
-          return { ...rc, [postIdParam]: updated };
-        });
-
-
-        return { ...prev, [postIdParam]: next };
-      });
-    },
-    [t]
-  );
 
   const goToProfile = useCallback((postId: string) => {
     if (author.id === profile?.user_id) {
@@ -196,49 +142,6 @@ const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
                 />
               </Animated.View>
             </View>
-
-            <Card.Actions style={styles.content}>
-              <View style={styles.statsRow}>
-                {/* Cuore */}
-                <View style={styles.stat}>
-                  <ToggleButton
-                    icon="heart"
-                    value="cuore"
-                    iconColor={currentSelected === 'cuore' ? 'red' : undefined}
-                    onPress={() => handleChangeReaction(postId, 'cuore')}
-                    style={styles.iconBtn}
-                    rippleColor="transparent"
-                  />
-                  <Text style={styles.statText}>{displayedCounts.cuore}</Text>
-                </View>
-
-                {/* Pollice su */}
-                <View style={styles.stat}>
-                  <ToggleButton
-                    icon="thumb-up"
-                    value="pollice_su"
-                    iconColor={currentSelected === 'pollice_su' ? 'rgb(41, 41, 226)' : undefined}
-                    onPress={() => handleChangeReaction(postId, 'pollice_su')}
-                    style={styles.iconBtn}
-                    rippleColor="transparent"
-                  />
-                  <Text style={styles.statText}>{displayedCounts.pollice_su}</Text>
-                </View>
-
-                {/* Pollice giù */}
-                <View style={styles.stat}>
-                  <ToggleButton
-                    icon="thumb-down"
-                    value="pollice_giu"
-                    iconColor={currentSelected === 'pollice_giu' ? 'rgba(102, 42, 42, 0.986)' : undefined}
-                    onPress={() => handleChangeReaction(postId, 'pollice_giu')}
-                    style={styles.iconBtn}
-                    rippleColor="transparent"
-                  />
-                  <Text style={styles.statText}>{displayedCounts.pollice_giu}</Text>
-                </View>
-              </View>
-            </Card.Actions>
             {
               shareMode &&
               <View>
@@ -325,29 +228,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  iconBtn: {
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-    borderRadius: 999,
-    width: 34,
-    height: 34,
-    justifyContent: 'center',
-  },
-  statText: {
-    fontSize: 14,
-    opacity: 0.75,
-  },
   content: {
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
     // paddingHorizontal: 12,
     // paddingVertical: 15,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 18,
   },
   imageWrapper: {
     width: '100%',

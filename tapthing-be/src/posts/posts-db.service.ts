@@ -55,14 +55,16 @@ export class PostsDBService {
     limit: number,
     last_created_at: string | null,
     last_id: string | null,
+    user_id: string
   ): Promise<ResponsePostPaginated> {
-    
+
     const { data, error }: PostgrestSingleResponse<ResponsePostPaginated> =
-      await this.supabaseService.getClient().rpc('get_global_feed_by_prompt_id_v2', {
+      await this.supabaseService.getClient().rpc('get_global_feed_by_prompt_id', {
         p_prompt_id: prompt_id,
         p_limit: limit,                  // <-- niente +1: lo gestisce la RPC
         p_last_created_at: last_created_at, // ISO8601 o null
-        p_last_id: last_id,                 // string o null
+        p_last_id: last_id,
+        p_user_id: user_id
       });
 
 

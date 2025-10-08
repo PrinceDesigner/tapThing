@@ -25,7 +25,8 @@ export class PostsService {
   getPaginatedPostsCursor(
     prompt_id: string,
     limit: number,
-    cursor: { id: string | null, created_at: string | null }
+    cursor: { id: string | null, created_at: string | null },
+    user_id: string
   ) {
 
     return this.postsDBService.getPaginatedPosts(
@@ -33,6 +34,7 @@ export class PostsService {
       limit,
       cursor.created_at,
       cursor.id,
+      user_id
     );
   }
 
