@@ -50,7 +50,7 @@ const ProfiloUpdateScreen = () => {
 
   const { prompt } = useActivePrompt();
 
-  const { post, patchAuthorOptimistic } = usePostQuery(prompt?.posted_id || '');
+  const { post, patchAuthorOptimistic } = usePostQuery(prompt?.posted_id || '', prompt?.prompt_id || '');
 
 
 

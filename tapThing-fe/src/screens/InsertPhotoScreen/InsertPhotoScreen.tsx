@@ -108,8 +108,8 @@ export const InsertPhotoScreen: React.FC = () => {
             setPostedAtOnPrompt(postCreatedAt);
 
         } catch (e: any) {
-            // showToast(e.message ?? "Errore upload");
-            show('Errore nel caricamento', 'error');
+            // todo traduzioni
+            show((t(e.code) || t('UNKNOWN_ERROR')), 'error');
             // show(e.message || t("error_generic"), type: "error" });
         } finally {
             setLoading(false);

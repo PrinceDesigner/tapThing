@@ -9,7 +9,7 @@ export class PostsService {
 
   create(createPostDto: {
     url: string;
-    promptid: string;
+    prompt_id: string;
     lat?: number;
     lng?: number;
     country?: string;

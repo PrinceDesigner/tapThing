@@ -4,7 +4,7 @@ import { Post, PostDetail, ResponsePostPaginated } from "./model/post.model";
 export async function insertPost(url_image: string, prompt_id: string, lat: number | null, lng: number | null, country: string | null, city: string | null): Promise<{ id: string, created_at: string }> {
   return apiClient.post(`posts/add`, {
     url: url_image,
-    promptid: prompt_id,
+    prompt_id,
     lat,
     lng,
     country,
@@ -12,8 +12,10 @@ export async function insertPost(url_image: string, prompt_id: string, lat: numb
   });
 }
 
-export async function getPostById(id: string): Promise<PostDetail> {
-  return apiClient.get(`posts/${id}`);
+export async function getPostById(id: string, prompt_id: string): Promise<PostDetail> {
+  const qs = new URLSearchParams();
+  qs.set("prompt_id", prompt_id);
+  return apiClient.get(`posts/${id}?${qs.toString()}`);
 }
 
 export const getPosts = async (
@@ -36,8 +38,11 @@ export const getPosts = async (
   return response;
 };
 
-export async function deletePost(id: string): Promise<{ success: boolean }> {
-  return apiClient.delete(`posts/${id}`);
+export async function deletePost(id: string, prompt_id: string): Promise<{ success: boolean }> {
+  const qs = new URLSearchParams();
+  qs.set("prompt_id", prompt_id);
+
+  return apiClient.delete(`posts/${id}?${qs.toString()}`);
 }
 
 

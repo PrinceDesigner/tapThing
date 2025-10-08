@@ -76,5 +76,9 @@
   "POST_DELETE_ERROR": "Errore durante l'eliminazione del post.",
   "POST_NOT_FOUND_OR_NOT_YOURS": "Post non trovato o non sei il proprietario.",
   "share_mode": "Condividi post",
-  "save": "Salva"
+  "save": "Salva",
+  "PROMPT_ERROR_FETCH": "Errore durante il recupero dei prompt.",
+  "UNKNOWN_ERROR": "Errore sconosciuto.",
+  "POST_CREATE_ERROR": "Errore durante la creazione del post.",
+  "PROMPT_EXPIRED": "Lo stimolo è scaduto."
 }

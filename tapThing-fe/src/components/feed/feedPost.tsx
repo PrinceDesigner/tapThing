@@ -41,9 +41,9 @@ const FeedPost = ({ post }: FeedPostProps) => {
   const theme = useTheme();
   const { t } = useTranslation();
 
-  const { mutate: deletePost, isPending } = useDeletePost();
-  const { author, post: postData, reactions } = post;
   const { prompt } = useActivePrompt();
+  const { mutate: deletePost, isPending } = useDeletePost(prompt?.prompt_id || '');
+  const { author, post: postData, reactions } = post;
   const [shareMode, setShareMode] = useState(false);
 
 

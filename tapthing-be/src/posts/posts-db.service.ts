@@ -10,16 +10,18 @@ export class PostsDBService {
 
   async create(createPostDto: {
     url: string;
-    promptid: string;
+    prompt_id: string;
     lat?: number;
     lng?: number;
     country?: string;
     city?: string;
   }, userId: string) {
+
+
     const { data, error } = await this.supabaseService
       .getClient()
       .from('posted')
-      .insert({ storage_path: createPostDto.url, user_id: userId, prompt_id: createPostDto.promptid, lat: createPostDto.lat, lng: createPostDto.lng, country: createPostDto.country, city: createPostDto.city })
+      .insert({ storage_path: createPostDto.url, user_id: userId, prompt_id: createPostDto.prompt_id, lat: createPostDto.lat, lng: createPostDto.lng, country: createPostDto.country, city: createPostDto.city })
       .select('id, created_at')
       .single();
 
@@ -54,6 +56,7 @@ export class PostsDBService {
     last_created_at: string | null,
     last_id: string | null,
   ): Promise<ResponsePostPaginated> {
+    
     const { data, error }: PostgrestSingleResponse<ResponsePostPaginated> =
       await this.supabaseService.getClient().rpc('get_global_feed_by_prompt_id_v2', {
         p_prompt_id: prompt_id,
@@ -61,6 +64,7 @@ export class PostsDBService {
         p_last_created_at: last_created_at, // ISO8601 o null
         p_last_id: last_id,                 // string o null
       });
+
 
     if (error) {
       const msg = this.i18n.t('errors.POSTS_FETCH_ERROR');

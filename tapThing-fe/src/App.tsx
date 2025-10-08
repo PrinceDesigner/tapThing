@@ -30,6 +30,7 @@ import { GlobalSnackbar } from './components/ui/GlobalSnackbar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppState } from 'react-native';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { queryClient } from './libs/tanstackQuery.client';
 
 function AppContent() {
   const [i18nReady, setI18nReady] = useState(false);
@@ -114,24 +115,7 @@ export default function App() {
 
 
 
-  // --- QueryClient & integrazioni rete/focus ---
-  const queryClient = new QueryClient({
-    queryCache: new QueryCache({
-      onError: (error, query) => {
-        console.error('RQ Query error:', { key: query.queryKey, error });
-      },
-    }),
-    defaultOptions: {
-      queries: {
-        retry: 1,
-        staleTime: 30_000,
-        gcTime: 5 * 60_000,
-        refetchOnReconnect: true,
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-      }
-    },
-  });
+
 
   onlineManager.setEventListener((setOnline) =>
     NetInfo.addEventListener((state) => setOnline(!!state.isConnected))
@@ -141,7 +125,6 @@ export default function App() {
     const sub = AppState.addEventListener('change', (s) => handleFocus(s === 'active'));
     return () => sub.remove();
   });
-
 
 
   return (

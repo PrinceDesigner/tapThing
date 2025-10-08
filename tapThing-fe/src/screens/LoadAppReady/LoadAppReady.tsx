@@ -16,12 +16,11 @@ export function LoadAppReady() {
 
     useBootstrapUser();
 
+    // todo mettere traduzioni
     if (error) {
         return (
             <View style={[styles.overlay, { backgroundColor: "#fff" }]}>
                 <View style={{ alignItems: "center" }}>
-                    <ActivityIndicator size="large" color={colors.error} />
-                    <View style={{ height: 32 }} />
                     <View style={{ paddingHorizontal: 24 }}>
                         <Text style={{ fontSize: 28, fontWeight: "bold", color: colors.error, textAlign: "center" }}>
                             Errore

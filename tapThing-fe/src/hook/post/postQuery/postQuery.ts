@@ -8,12 +8,12 @@ import { InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient }
 import { useTranslation } from 'react-i18next';
 
 // dentro usePostQuery.ts
-export function usePostQuery(id: string) {
+export function usePostQuery(id: string, prompt_id: string) {
   const qc = useQueryClient();
 
   const query = useQuery<PostDetail | null>({
     queryKey: ['post', id],
-    queryFn: () => getPostById(id),
+    queryFn: () => getPostById(id, prompt_id),
     staleTime: 30_000,
     refetchOnWindowFocus: false,
     enabled: !!id,
@@ -66,6 +66,7 @@ export function usePostInfinite(
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });
+
 }
 
 export function useResetAllPosts() {
@@ -81,16 +82,16 @@ export function useResetAllPosts() {
   }
 }
 
-export function useDeletePost() {
+export function useDeletePost(prompt_id: string) {
   const qc = useQueryClient();
   const { setHasPostedOnPrompt, setPostedIdOnPrompt, setPostedAtOnPrompt } =
     useUpdatePromptCache();
-      const resetAllPosts = useResetAllPosts();
+  const resetAllPosts = useResetAllPosts();
   const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await deletePost(id);
+      const res = await deletePost(id, prompt_id);
       return res;
     },
 
@@ -133,9 +134,10 @@ export function useDeletePost() {
 
     // opzionale: feedback UI
     onError: (e: any) => {
-      const deleteError = t(e.cause);
+      const deleteError = t('POST_DELETE_ERROR');
       useSnackbarStore.getState().show(deleteError, 'error');
       useLoadingStore.getState().setLoading(false);
+
     },
   });
 }

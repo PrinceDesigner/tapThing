@@ -10,5 +10,6 @@
     "POST_CREATE_ERROR": "Error creating the post.",
     "POSTS_FETCH_ERROR": "Error fetching posts.",
     "POST_DELETE_ERROR": "Error deleting the post.",
-    "POST_NOT_FOUND_OR_NOT_YOURS": "Post not found or you are not the owner."
+    "POST_NOT_FOUND_OR_NOT_YOURS": "Post not found or you are not the owner.",
+    "PROMPT_EXPIRED": "The prompt has expired."
 }

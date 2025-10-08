@@ -18,7 +18,7 @@ const ProfiloScreen = () => {
   const nav = useNavigation<any>();
   const { prompt } = useActivePrompt();
 
-  const { post } = usePostQuery(prompt?.posted_id || '');
+  const { post } = usePostQuery(prompt?.posted_id || '', prompt?.prompt_id || '');
 
   const promptTitle = prompt?.title;
 
