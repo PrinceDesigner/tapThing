@@ -180,6 +180,7 @@ const FeedScreen: React.FC = () => {
             expiredText={t('EXPIRED_AT')}
             labelPrefix={t('EXPIRES_IN')}
             variant='labelSmall'
+            onSecondary={false}
           />
       </View>
 

@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, AccessibilityInfo } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, AccessibilityInfo, Pressable } from 'react-native';
 import { PostDetail, Reactions } from '@/api/posts/model/post.model';
 import { ActivityIndicator, Avatar, Button, Card, IconButton, Modal, Portal, Text, ToggleButton, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -18,9 +18,12 @@ import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
 import { usePinchPan } from '@/hook/usePinchPanAnimate/usePinchPan';
 import { useShareSnapshot } from '@/hook/shareSnapshot/useShareSnapshot';
 import { MOCK_AVATAR } from '@/constants/mockAvatar';
+import { useUserStore } from '@/store/user/user.store';
+import { useNavigation } from '@react-navigation/native';
 
 interface FeedPostProps {
   post: PostDetail;
+  currentPrompt?: any; // Aggiungi prop opzionale
 }
 
 type Shortcode = 'cuore' | 'pollice_su' | 'pollice_giu';
@@ -36,13 +39,16 @@ const toCountsMap = (r: Reactions): CountsMap => {
   return base;
 };
 
-const FeedPost = ({ post }: FeedPostProps) => {
+const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
 
   const theme = useTheme();
   const { t } = useTranslation();
 
-  const { prompt } = useActivePrompt();
-  const { mutate: deletePost, isPending } = useDeletePost(prompt?.prompt_id || '');
+  const { mutate: deletePost, isPending } = useDeletePost(currentPrompt?.prompt_id || '');
+
+  const profile = useUserStore((s) => s.profile);
+  const nav = useNavigation<any>();
+
   const { author, post: postData, reactions } = post;
   const [shareMode, setShareMode] = useState(false);
 
@@ -77,7 +83,7 @@ const FeedPost = ({ post }: FeedPostProps) => {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const postId = postData.id;
-  const isPostOnPrompt = prompt?.posted_id === postId;
+  const isPostOnPrompt = currentPrompt?.posted_id === postId;
 
   const actionsBottomSheet = useMemo(
     () =>
@@ -133,6 +139,13 @@ const FeedPost = ({ post }: FeedPostProps) => {
     [t]
   );
 
+  const goToProfile = useCallback((postId: string) => {
+    if (author.id === profile?.user_id) {
+      nav.navigate('Profile', { screen: 'ProfiloScreen', params: { fromFeed: true } });
+    } else {
+      nav.navigate('ProfileUserNotMe', { postId });
+    }
+  }, [author.id, nav, profile?.user_id]);
 
   return (
     <>
@@ -140,15 +153,24 @@ const FeedPost = ({ post }: FeedPostProps) => {
         <SnapTarget>
           <Card elevation={0} style={styles.card}>
             <Card.Title
+              titleStyle={{ marginBottom: -4 }}
               title={
-                <View>
+                <Pressable
+                  style={{ flexDirection: 'column', justifyContent: 'center' }}
+                  onPress={() => goToProfile(postData.id)}>
                   <Text variant="labelLarge">{`@${author.username}`}</Text>
                   <Text variant="labelSmall" style={styles.locationText}>{location}</Text>
-                </View>
+                </Pressable>
               }
               titleVariant="titleMedium"
-              left={(props) => <Avatar.Image {...props} size={30} source={avatarSource} />}
-              leftStyle={{ marginRight: 0, marginLeft: 0 }}
+              left={(props) => {
+                return (
+                  <Pressable onPress={() => goToProfile(postData.id)}>
+                    <Avatar.Image {...props} source={avatarSource} size={40} />
+                  </Pressable>
+                );
+              }}
+              leftStyle={{ marginRight: 10, marginLeft: 0 }}
               right={(props) => (
                 <IconButton
                   {...props}
@@ -224,7 +246,7 @@ const FeedPost = ({ post }: FeedPostProps) => {
                   <Text style={{ fontWeight: 'bold', fontSize: 20 }}>TapThing</Text>
                 </View>
                 <View style={{ paddingHorizontal: 16 }}>
-                  <Text variant='labelLarge' style={{ textAlign: 'center' }}>{prompt?.title}</Text>
+                  <Text variant='labelLarge' style={{ textAlign: 'center' }}>{currentPrompt?.title}</Text>
                 </View>
               </View>
 

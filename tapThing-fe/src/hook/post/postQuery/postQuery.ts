@@ -1,4 +1,3 @@
-
 import { Author, PostDetail, ResponsePostPaginated } from '@/api/posts/model/post.model';
 import { deletePost, getPostById, getPosts } from '@/api/posts/post.service';
 import { useUpdatePromptCache } from '@/hook/prompt/useHookPrompts';
@@ -7,16 +6,16 @@ import { useSnackbarStore } from '@/store/snackbar/snackbar.store';
 import { InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
-// dentro usePostQuery.ts
+/* =========================
+   usePostQuery.ts
+   ========================= */
 export function usePostQuery(idPost: string, prompt_id: string) {
-  const qc = useQueryClient();
-
   const query = useQuery<PostDetail | null>({
     queryKey: ['post', idPost, prompt_id],
     queryFn: () => getPostById(idPost, prompt_id),
+    enabled: !!idPost && !!prompt_id,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
-    enabled: !!idPost && !!prompt_id,
     retry: 1,
   });
 
@@ -32,12 +31,14 @@ export function usePostQuery(idPost: string, prompt_id: string) {
   };
 }
 
-// usePostCacheActions.ts
+/* =========================
+   usePostCacheActions.ts
+   ========================= */
 export function usePostCacheActions() {
   const qc = useQueryClient();
 
   const patchAuthorOptimistic = (id: string, patch: Partial<Author>, prompt_id: string) => {
-    qc.setQueryData<PostDetail | null>(['post', id, prompt_id], old => {
+    qc.setQueryData<PostDetail | null>(['post', id, prompt_id], (old) => {
       if (!old) return old;
       return { ...old, author: { ...old.author, ...patch } };
     });
@@ -46,8 +47,9 @@ export function usePostCacheActions() {
   return { patchAuthorOptimistic };
 }
 
-
-
+/* =========================
+   usePostInfinite.ts
+   ========================= */
 export function usePostInfinite(
   prompt_id?: string,
   opts?: { pageSize?: number }
@@ -55,11 +57,11 @@ export function usePostInfinite(
   const pageSize = opts?.pageSize ?? 20;
 
   return useInfiniteQuery<ResponsePostPaginated, Error>({
-    queryKey: ["posts", prompt_id, pageSize],
+    queryKey: ['posts', prompt_id, pageSize],
     enabled: !!prompt_id,
     // prima pagina: nessun cursor
     initialPageParam: null as { id: string | null; created_at: string | null } | null,
-    queryFn: ({ pageParam, signal }) =>
+    queryFn: ({ pageParam }) =>
       getPosts(prompt_id!, pageSize, (pageParam as { id: string | null; created_at: string | null } | null) ?? null),
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     // RN-friendly
@@ -68,78 +70,63 @@ export function usePostInfinite(
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });
-
 }
 
+/* =========================
+   useResetAllPosts.ts
+   ========================= */
 export function useResetAllPosts() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return async () => {
-    // se ci sono fetch in corso, li fermo
-    await queryClient.cancelQueries({ queryKey: ['posts'] })
-    // rimuovo TUTTE le varianti (infinite pages incluse)
-    queryClient.removeQueries({ queryKey: ['posts'], exact: false })
-    // opzionale: se lo screen è già montato, forzo subito un nuovo fetch
+    // Rimuove TUTTE le varianti (infinite pages incluse) delle liste posts
+    queryClient.removeQueries({ queryKey: ['posts'], exact: false });
+    // opzionale: se lo screen è già montato, puoi forzare subito un nuovo fetch delle query attive
     // await queryClient.refetchQueries({ queryKey: ['posts'], type: 'active' })
-  }
+  };
 }
 
+/* =========================
+   useDeletePost.ts
+   ========================= */
 export function useDeletePost(prompt_id: string) {
   const qc = useQueryClient();
-  const { setHasPostedOnPrompt, setPostedIdOnPrompt, setPostedAtOnPrompt } =
-    useUpdatePromptCache();
+  const { setHasPostedOnPrompt, setPostedIdOnPrompt, setPostedAtOnPrompt } = useUpdatePromptCache();
   const resetAllPosts = useResetAllPosts();
   const { t } = useTranslation();
 
   return useMutation({
+    mutationKey: ['deletePost', prompt_id],
     mutationFn: async (id: string) => {
       const res = await deletePost(id, prompt_id);
       return res;
     },
 
-    onMutate: (id) => {
+    onMutate: () => {
       useLoadingStore.getState().setLoading(true);
     },
 
     onSuccess: (_res, id) => {
-      // 1) aggiorna il prompt attivo
+      // 1) aggiorna lo stato del prompt attivo (coerenza UI)
       resetAllPosts();
       setHasPostedOnPrompt(false);
       setPostedIdOnPrompt(null);
       setPostedAtOnPrompt(null);
 
-      // 2) rimuovi la cache del singolo post
-      qc.removeQueries({ queryKey: ['post', id], exact: true });
+      // 2) rimuovi la cache del singolo post (chiave esatta usata in usePostQuery)
+      qc.removeQueries({ queryKey: ['post', id, prompt_id], exact: true });
 
-      // 3) rimuovi il post da tutte le liste infinite ['posts', ...]
-      const lists = qc.getQueriesData<InfiniteData<ResponsePostPaginated>>({
-        queryKey: ['posts'],
-      });
-
-      for (const [key, data] of lists) {
-        if (!data) continue;
-
-        const newPages = data.pages.map((page) => ({
-          ...page, // mantiene intatto nextCursor
-          posts: page.posts.filter((pd: PostDetail) => pd.post.id !== id),
-        }));
-
-        qc.setQueryData<InfiniteData<ResponsePostPaginated>>(key, {
-          ...data,
-          pages: newPages,
-        });
-      }
-      useLoadingStore.getState().setLoading(false);
+      // Nota: niente invalidazione / refetch aggiuntivo → "zero rete" come desiderato
       useSnackbarStore.getState().show('Delete successful', 'success');
-      // nessuna invalidate: zero rete
     },
 
-    // opzionale: feedback UI
-    onError: (e: any) => {
+    onError: () => {
       const deleteError = t('POST_DELETE_ERROR');
       useSnackbarStore.getState().show(deleteError, 'error');
-      useLoadingStore.getState().setLoading(false);
+    },
 
+    onSettled: () => {
+      useLoadingStore.getState().setLoading(false);
     },
   });
 }

@@ -7,7 +7,7 @@ import ProfiloUpdateScreen from '@/screens/ProfiloStackScreen/ProfiloUpdateScree
 // Importa qui le tue pagine
 
 export type ProfiloStackParamList = {
-    ProfiloScreen: undefined;
+    ProfiloScreen: { fromFeed?: boolean } | undefined;
     ProfiloUpdateScreen: undefined;
 };
 
@@ -23,7 +23,7 @@ const ProfiloStackScreensNavigation: React.FC = () => {
             />
             <Stack.Screen name="ProfiloUpdateScreen"
                 component={ProfiloUpdateScreen}
-                options={{ headerShown: false }}
+                options={{ headerShown: true, headerTitle: '', headerBackTitle: t('back') || 'Back' }}
             />
         </Stack.Navigator>
     );

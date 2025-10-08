@@ -82,6 +82,7 @@
   "POST_CREATE_ERROR": "Errore durante la creazione del post.",
   "PROMPT_EXPIRED": "Lo stimolo è scaduto.",
   "EXPIRES_IN": "Scade tra",
-  "EXPIRED_AT": "Stimolo scaduto"
+  "EXPIRED_AT": "Stimolo scaduto",
+  "loading": "Caricamento..."
 
 }

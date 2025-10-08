@@ -82,5 +82,6 @@
   "POST_CREATE_ERROR": "Error creating the post.",
   "PROMPT_EXPIRED": "The prompt has expired.",
   "EXPIRES_IN": "Expires in",
-  "EXPIRED_AT": "Prompt expired"
+  "EXPIRED_AT": "Prompt expired",
+  "loading": "Loading..."
 }
