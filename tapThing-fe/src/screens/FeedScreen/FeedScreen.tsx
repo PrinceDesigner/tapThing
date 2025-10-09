@@ -32,7 +32,7 @@ const FeedScreen: React.FC = () => {
     hasNextPage,
     refetch,
     isRefetching,
-  } = usePostInfinite(promptId, { pageSize: 10 });
+  } = usePostInfinite(promptId, { pageSize: 20 });
 
   const posts = useMemo<PostDetail[]>(
     () => data?.pages.flatMap((p) => p.posts) ?? [],

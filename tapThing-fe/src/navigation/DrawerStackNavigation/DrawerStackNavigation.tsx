@@ -17,16 +17,10 @@ import i18n, { setAppLanguage } from '@/i18n';
 import HowToScreen from '@/screens/HowToScren/HowToScreen';
 import ProfiloStackScreensNavigation from '../ProfiloStacNavigator/ProfiloStackNavigator';
 import { useQueryClient } from '@tanstack/react-query';
+import { OtherScreen } from '@/screens/OtherScreen/OtherScreen';
 
 
 const Drawer = createDrawerNavigator();
-
-const PlaceholderScreen = ({ title }: { title: string }) => (
-
-  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-    <Text>{title} Placeholder</Text>
-  </View>
-);
 
 const CustomHeader: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<any>>();
@@ -66,7 +60,6 @@ const CustomHeader: React.FC = () => {
 
   );
 };
-
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
   const theme = useTheme();
@@ -214,6 +207,11 @@ const DrawerStackNavigation = () => {
         name="howto"
         options={{ title: t('what_is_this') }}
         children={() => <HowToScreen />}
+      />
+      <Drawer.Screen
+        name="other"
+        options={{ title: t('other') }}
+        children={() => <OtherScreen />}
       />
     </Drawer.Navigator>
     // </NavigationContainer>

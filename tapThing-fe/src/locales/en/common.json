@@ -83,5 +83,11 @@
   "PROMPT_EXPIRED": "The prompt has expired.",
   "EXPIRES_IN": "Expires in",
   "EXPIRED_AT": "Prompt expired",
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "errore": "Error",
+  "error_fetch_app": " An error occurred while loading the application.",
+  "other": "Other",
+  "Delete_user": "Delete User",
+  "Are_you_sure_delete_post": "Are you sure you want to delete your account? This action is irreversible and will result in the permanent deletion of all your data.",
+  "not_delete": "Not Delete"
 }

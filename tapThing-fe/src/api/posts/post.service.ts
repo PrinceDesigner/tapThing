@@ -46,3 +46,15 @@ export async function deletePost(id: string, prompt_id: string): Promise<{ succe
 }
 
 
+export async function reactToPost(
+  emoji_id: number | null,
+  action: 'add' | 'remove',
+  post_id: string
+): Promise<{ success: boolean }> {
+  return apiClient.post('posts/react/' + post_id, {
+    action,
+    emoji_id,
+  });
+}
+
+

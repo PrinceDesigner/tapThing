@@ -100,5 +100,35 @@ export class PostsDBService {
   }
 
 
+  async reactToPost(emoji_id: number | null, user_id: string, action: 'add' | 'remove', post_id: string) {
+    if (action === 'add') {
+      const { data, error } = await this.supabaseService
+        .getClient()
+        .from('reactions')
+        .upsert({ posted_id: post_id, user_id, emoji_id }, { onConflict: 'posted_id,user_id' })
+        .select()
+        .single()
 
+      if (error) {
+        const msg = this.i18n.t('errors.REACTION_TOGGLE_ERROR');
+        throw new InternalServerErrorException({ code: 'REACTION_TOGGLE_ERROR', message: msg });
+      }
+
+    } else {
+      const { data, error } = await this.supabaseService
+        .getClient()
+        .from('reactions')
+        .delete()
+        .eq('posted_id', post_id)
+        .eq('user_id', user_id)
+        .select()
+        .maybeSingle()
+
+      if (error) {
+        const msg = this.i18n.t('errors.REACTION_TOGGLE_ERROR');
+        throw new InternalServerErrorException({ code: 'REACTION_TOGGLE_ERROR', message: msg });
+      }
+
+    }
+  }
 }

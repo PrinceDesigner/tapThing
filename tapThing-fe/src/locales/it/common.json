@@ -83,6 +83,12 @@
   "PROMPT_EXPIRED": "Lo stimolo è scaduto.",
   "EXPIRES_IN": "Scade tra",
   "EXPIRED_AT": "Stimolo scaduto",
-  "loading": "Caricamento..."
+  "loading": "Caricamento...",
+  "errore": "Errore",
+  "error_fetch_app": " Si è verificato un errore durante il caricamento dell'applicazione.",
+  "other": "Altro",
+  "Delete_user": "Elimina utente",
+  "Are_you_sure_delete_post": "Sei sicuro di voler eliminare il tuo account? Questa azione è irreversibile e comporterà la cancellazione permanente di tutti i tuoi dati.",
+  "not_delete": "Non eliminare"
 
 }

@@ -2,14 +2,15 @@
 import { AuthListenerCliente } from "@/hook/supabase/AuthListnerSupabase";
 import AuthStackNavigation from "@/navigation/AuthStackNavigation/AuthStackNavigation";
 import DrawerStackNavigation from "@/navigation/DrawerStackNavigation/DrawerStackNavigation";
-import { GlobalLoader } from "@/components/ui/GlobalLoader";
 import { useUserStore } from "@/store/user/user.store";
 import { useBootstrapUser } from "@/hook/user/BootstrapUser";
 import { View, StyleSheet } from "react-native";
 import { ActivityIndicator, useTheme, Text } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 
 export function LoadAppReady() {
     const { colors } = useTheme();
+    const { t } = useTranslation();
     const { isAuthenticated, loading: authLoading } = AuthListenerCliente();
     const isProfileReady = useUserStore((s) => s.isProfileReady);
     const error = useUserStore((s) => s.error);
@@ -23,16 +24,13 @@ export function LoadAppReady() {
                 <View style={{ alignItems: "center" }}>
                     <View style={{ paddingHorizontal: 24 }}>
                         <Text style={{ fontSize: 28, fontWeight: "bold", color: colors.error, textAlign: "center" }}>
-                            Errore
+                            {t("errore")}
                         </Text>
                         <View style={{ height: 16 }} />
                         <Text style={{ fontSize: 18, color: "#333", textAlign: "center" }}>
-                            Si è verificato un errore durante il caricamento dell'applicazione.
+                            {t("error_fetch_app")}
                         </Text>
                         <View style={{ height: 8 }} />
-                        <Text style={{ fontSize: 14, color: "#888", textAlign: "center" }}>
-                            Errore sconosciuto
-                        </Text>
                     </View>
                 </View>
             </View>

@@ -23,6 +23,7 @@ const ProfiloScreen = () => {
 
   const { post, isLoading } = usePostQuery(prompt?.posted_id || '', prompt?.prompt_id || '');
 
+
   const promptTitle = prompt?.title;
 
   const handleEditProfile = () => {

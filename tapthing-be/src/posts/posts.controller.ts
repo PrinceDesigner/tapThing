@@ -38,4 +38,9 @@ export class PostsController {
     return this.postsService.removePostById(id, user_id);
   }
 
+  @Post('/react/:post_id')
+  reactToPost(@Param('post_id') postId: string, @CurrentUser('id') user_id: string, @Body() b: { action: 'add' | 'remove', emoji_id: number | null }) {
+    return this.postsService.react(b.emoji_id, user_id, b.action, postId);
+  }
+
 }

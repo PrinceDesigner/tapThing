@@ -1,25 +1,21 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, AccessibilityInfo, Pressable } from 'react-native';
-import { Emoji, PostDetail, Reactions } from '@/api/posts/model/post.model';
-import { ActivityIndicator, Avatar, Button, Card, IconButton, Modal, Portal, Text, ToggleButton, useTheme } from 'react-native-paper';
+import React, { memo, useCallback, useMemo, useState } from 'react';
+import { View, StyleSheet, Pressable } from 'react-native';
+import { PostDetail, Reactions } from '@/api/posts/model/post.model';
+import { Avatar, Button, Card, IconButton, Modal, Portal, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import ImageViewing from 'react-native-image-viewing';
 import { Image as ExpoImage } from 'expo-image';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { BottomSheetGeneral } from '../bottomSheetGeneral/BottomSheetGeneral';
 import { useBottomSheetGeneral } from '@/hook/useBottomSheetGeneral';
 import { useDeletePost } from '@/hook/post/postQuery/postQuery';
-import { useActivePrompt } from '@/hook/prompt/useHookPrompts';
 import { usePinchPan } from '@/hook/usePinchPanAnimate/usePinchPan';
 import { useShareSnapshot } from '@/hook/shareSnapshot/useShareSnapshot';
 import { MOCK_AVATAR } from '@/constants/mockAvatar';
 import { useUserStore } from '@/store/user/user.store';
 import { useNavigation } from '@react-navigation/native';
+import ReactionBar from '../toggleReact/ToggleReactBar';
+import { useToggleReactionMutation } from '@/hook/post/useHookReaction';
 
 interface FeedPostProps {
   post: PostDetail;
@@ -93,6 +89,9 @@ const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
     }
   }, [author.id, nav, profile?.user_id]);
 
+  const c = useToggleReactionMutation()
+
+
   return (
     <>
       <GestureDetector gesture={composed}>
@@ -116,7 +115,7 @@ const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
                   </Pressable>
                 );
               }}
-              leftStyle={{ marginRight: 10, marginLeft: 0 }}
+              leftStyle={{ marginRight: 10, marginLeft: -5 }}
               right={(props) => (
                 <IconButton
                   {...props}
@@ -142,6 +141,26 @@ const FeedPost = ({ post, currentPrompt }: FeedPostProps) => {
                 />
               </Animated.View>
             </View>
+            <Card.Content
+              style={{ marginLeft: -10, marginVertical: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+            >
+              <ReactionBar
+                post={post}
+                disabled={isPending}
+                onPress={({ action, emoji, emojiId }) => {
+                  if (c.isPending) return
+                  const toSend = action === 'remove' ? null : emojiId
+                  c.mutate({
+                    postId: post.post.id,
+                    promptId: currentPrompt?.prompt_id || '',
+                    emojiShortcode: emoji,
+                    emojiId: toSend,
+                    action,
+                    pageSize: 20,
+                  })
+                }}
+              />
+            </Card.Content>
             {
               shareMode &&
               <View>

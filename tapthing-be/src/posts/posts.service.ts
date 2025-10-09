@@ -41,4 +41,8 @@ export class PostsService {
   removePostById(id: string, user_id: string) {
     return this.postsDBService.removePostById(id, user_id);
   }
+
+  react(emoji_id: number | null, user_id: string, action: 'add' | 'remove', post_id: string) {
+    return this.postsDBService.reactToPost(emoji_id, user_id, action, post_id);
+  }
 }
